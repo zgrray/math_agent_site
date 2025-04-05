@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>骰子模拟实验与样本均值统计图</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .container {
+            width: 48%;
+            margin: 1%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .dice-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            min-height: 100px;
+            border: 1px dashed #ddd;
+            padding: 10px;
+        }
+        .dice {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            background-color: white;
+            border: 1px solid #333;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            transition: transform 0.5s;
+        }
+        .rolling {
+            animation: roll 0.5s infinite;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 10px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .stats-input {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .stats-input div {
+            width: 30%;
+            margin: 5px 0;
+        }
+        .stats-input input {
+            width: 100%;
+            padding: 5px;
+        }
+        canvas {
+            width: 100%;
+            max-height: 300px;
+            margin: 10px 0;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>抛掷骰子模拟试验</h2>
+        <div class="dice-container" id="diceContainer"></div>
+        <textarea id="recordArea" readonly></textarea>
+        <div class="button-group">
+            <button id="roll10Btn">抛掷10次</button>
+            <button id="roll100Btn">抛掷100次</button>
+            <button id="statsBtn">统计数据</button>
+            <button id="clearBtn">清除记录</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>样本均值统计图</h2>
+        <div id="chartContainer">
+            <canvas id="statsChart"></canvas>
+        </div>
+        <div class="stats-input">
+            <div>
+                <label>第一次的样本均值</label>
+                <input type="text" id="mean1" readonly>
+            </div>
+            <div>
+                <label>第二次的样本均值</label>
+                <input type="text" id="mean2" readonly>
+            </div>
+            <div>
+                <label>第三次的样本均值</label>
+                <input type="text" id="mean3" readonly>
+            </div>
+            <div>
+                <label>第四次样本均值</label>
+                <input type="text" id="mean4" readonly>
+            </div>
+            <div>
+                <label>第五次样本均值</label>
+                <input type="text" id="mean5" readonly>
+            </div>
+            <div>
+                <label>第六次样本均值</label>
+                <input type="text" id="mean6" readonly>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="drawChartBtn">绘制统计图</button>
+            <button id="clearChartBtn">清除统计图</button>
+            <button id="historyChartBtn">历史统计图</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let diceResults = [];
+        let allRolls = [];
+        let lastStatsIndex = 0;
+        let chart = null;
+        let previousChartData = null;
+        let currentChartData = null;
+
+        // DOM元素
+        const diceContainer = document.getElementById('diceContainer');
+        const recordArea = document.getElementById('recordArea');
+        const roll10Btn = document.getElementById('roll10Btn');
+        const roll100Btn = document.getElementById('roll100Btn');
+        const statsBtn = document.getElementById('statsBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const drawChartBtn = document.getElementById('drawChartBtn');
+        const clearChartBtn = document.getElementById('clearChartBtn');
+        const historyChartBtn = document.getElementById('historyChartBtn');
+        const meanInputs = [
+            document.getElementById('mean1'),
+            document.getElementById('mean2'),
+            document.getElementById('mean3'),
+            document.getElementById('mean4'),
+            document.getElementById('mean5'),
+            document.getElementById('mean6')
+        ];
+
+        // 骰子面值对应的点数显示
+        const diceFaces = {
+            1: '⚀',
+            2: '⚁',
+            3: '⚂',
+            4: '⚃',
+            5: '⚄',
+            6: '⚅'
+        };
+
+        // 随机生成骰子点数
+        function rollDice() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        // 显示骰子动画
+        function showDiceAnimation(count) {
+            diceContainer.innerHTML = '';
+            diceResults = [];
+            
+            for (let i = 0; i < count; i++) {
+                const dice = document.createElement('div');
+                dice.className = 'dice rolling';
+                dice.textContent = '?';
+                diceContainer.appendChild(dice);
+            }
+            
+            setTimeout(() => {
+                const diceElements = document.querySelectorAll('.dice');
+                diceElements.forEach((dice, index) => {
+                    const value = rollDice();
+                    diceResults.push(value);
+                    dice.textContent = diceFaces[value];
+                    dice.classList.remove('rolling');
+                });
+                
+                // 记录结果
+                recordRolls(diceResults);
+            }, 500);
+        }
+
+        // 记录抛掷结果
+        function recordRolls(results) {
+            allRolls.push(...results);
+            recordArea.value += `抛掷${results.length}次结果: ${results.join(', ')}\n`;
+            recordArea.scrollTop = recordArea.scrollHeight;
+        }
+
+        // 统计数据
+        function calculateStats() {
+            if (allRolls.length === 0) {
+                alert('请先抛掷骰子！');
+                return null;
+            }
+            
+            const stats = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+            let sum = 0;
+            
+            // 只统计上次统计之后的新数据
+            const newRolls = allRolls.slice(lastStatsIndex);
+            lastStatsIndex = allRolls.length;
+            
+            newRolls.forEach(value => {
+                stats[value]++;
+                sum += value;
+            });
+            
+            const total = newRolls.length;
+            const mean = (sum / total).toFixed(4);
+            
+            let statsText = `统计结果 (${total}次):\n`;
+            for (let i = 1; i <= 6; i++) {
+                const frequency = (stats[i] / total).toFixed(4);
+                statsText += `点数${i}: ${stats[i]}次, 频率: ${frequency}\n`;
+            }
+            statsText += `样本均值: ${mean}\n`;
+            
+            recordArea.value += statsText + '\n';
+            recordArea.scrollTop = recordArea.scrollHeight;
+            
+            return parseFloat(mean);
+        }
+
+        // 绘制统计图
+        function drawChart() {
+            const means = [];
+            for (let i = 0; i < 6; i++) {
+                const mean = meanInputs[i].value;
+                if (mean) means.push(parseFloat(mean));
+            }
+            
+            if (means.length === 0) {
+                alert('没有可绘制的数据！');
+                return;
+            }
+            
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            
+            // 保存当前图表数据
+            previousChartData = currentChartData;
+            currentChartData = {
+                labels: Array.from({length: means.length}, (_, i) => (i + 1).toString()),
+                data: means
+            };
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: currentChartData.labels,
+                    datasets: [
+                        {
+                            label: '理论均值 (3.5)',
+                            data: Array(means.length).fill(3.5),
+                            borderColor: 'red',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            type: 'line'
+                        },
+                        {
+                            label: '样本均值',
+                            data: means.map((value, index) => ({x: index + 1, y: value})),
+                            backgroundColor: 'blue',
+                            borderColor: 'blue',
+                            borderWidth: 1,
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '试验次数'
+                            },
+                            min: 0,
+                            max: 7,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '样本均值'
+                            },
+                            min: 1,
+                            max: 6,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 显示历史统计图
+        function showHistoryChart() {
+            if (!previousChartData || !currentChartData) {
+                alert('没有足够的历史数据！');
+                return;
+            }
+            
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: currentChartData.labels,
+                    datasets: [
+                        {
+                            label: '理论均值 (3.5)',
+                            data: Array(currentChartData.data.length).fill(3.5),
+                            borderColor: 'red',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false,
+                            type: 'line'
+                        },
+                        {
+                            label: '当前样本均值',
+                            data: currentChartData.data.map((value, index) => ({x: index + 1, y: value})),
+                            backgroundColor: 'blue',
+                            borderColor: 'blue',
+                            borderWidth: 1,
+                            pointRadius: 5
+                        },
+                        {
+                            label: '上次样本均值',
+                            data: previousChartData.data.map((value, index) => ({x: index + 1, y: value})),
+                            backgroundColor: 'green',
+                            borderColor: 'green',
+                            borderWidth: 1,
+                            pointRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '试验次数'
+                            },
+                            min: 0,
+                            max: 7,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '样本均值'
+                            },
+                            min: 1,
+                            max: 6,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 事件监听
+        roll10Btn.addEventListener('click', () => showDiceAnimation(10));
+        roll100Btn.addEventListener('click', () => showDiceAnimation(100));
+        
+        statsBtn.addEventListener('click', () => {
+            const mean = calculateStats();
+            if (mean !== null) {
+                // 找到第一个空的输入框
+                const emptyInput = meanInputs.find(input => !input.value);
+                if (emptyInput) {
+                    emptyInput.value = mean;
+                } else {
+                    // 如果没有空的，就依次前移
+                    for (let i = 0; i < 5; i++) {
+                        meanInputs[i].value = meanInputs[i + 1].value;
+                    }
+                    meanInputs[5].value = mean;
+                }
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            diceContainer.innerHTML = '';
+            recordArea.value = '';
+            diceResults = [];
+            allRolls = [];
+            lastStatsIndex = 0;
+        });
+        
+        drawChartBtn.addEventListener('click', drawChart);
+        
+        clearChartBtn.addEventListener('click', () => {
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
+            meanInputs.forEach(input => input.value = '');
+            previousChartData = null;
+            currentChartData = null;
+        });
+        
+        historyChartBtn.addEventListener('click', showHistoryChart);
+    </script>
+</body>
+</html>
