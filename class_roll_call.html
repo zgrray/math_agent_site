@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <title>数学课堂点名</title>
+        <style>
+            :root {
+                --primary-color: #4caf50;
+                --text-color: white;
+                --shadow-color: rgba(0, 0, 0, 0.3);
+                --highlight-color: blue;
+                --bg-gradient-1: #ff6b6b;
+                --bg-gradient-2: #4ecdc4;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            html,
+            body {
+                height: 100%;
+                overflow-x: hidden;
+                font-family: "微软雅黑", Arial, sans-serif;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background: linear-gradient(
+                    45deg,
+                    var(--bg-gradient-1),
+                    var(--bg-gradient-2)
+                );
+                position: relative;
+                overflow-x: hidden;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1rem;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                width: 300%;
+                height: 300%;
+                background: repeating-linear-gradient(
+                    60deg,
+                    rgba(255, 255, 255, 0.1) 0 20px,
+                    transparent 20px 40px
+                );
+                transform: rotate(15deg);
+                z-index: 0;
+                pointer-events: none;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
+                position: relative;
+                z-index: 3;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                flex: 1;
+            }
+
+            .header {
+                width: 100%;
+                text-align: center;
+                padding: 0.5rem 0;
+                margin-bottom: 1rem;
+            }
+
+            .title {
+                text-align: center;
+                font-size: clamp(1.5rem, 8vw, 3rem);
+                font-weight: bold;
+                color: var(--text-color);
+                text-shadow: 2px 2px 4px var(--shadow-color);
+                position: relative;
+                z-index: 3;
+                padding: 0 0.5rem;
+                word-break: break-word;
+            }
+
+            .formulas-container {
+                position: relative;
+                width: 100%;
+                z-index: 1;
+                display: none;
+                pointer-events: none;
+            }
+
+            @media screen and (min-width: 768px) {
+                .formulas-container {
+                    display: block;
+                }
+            }
+
+            .formulas {
+                position: absolute;
+                color: var(--text-color);
+                font-size: clamp(0.8rem, 4vw, 1.2rem);
+                opacity: 0.7;
+                padding: 1rem;
+                z-index: 1;
+            }
+
+            .formula-top-left {
+                top: 0;
+                left: 0;
+            }
+
+            .formula-bottom-right {
+                bottom: 5rem;
+                right: 0;
+            }
+
+            .main-content {
+                flex: 1;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 1rem 0;
+                position: relative;
+            }
+
+            #display {
+                font-size: clamp(2rem, 15vw, 4rem);
+                color: var(--text-color);
+                text-shadow: 2px 2px 4px var(--shadow-color);
+                transition: all 0.3s;
+                text-align: center;
+                z-index: 3;
+                max-width: 100%;
+                word-break: break-word;
+                padding: 1rem;
+            }
+
+            .highlight {
+                font-size: clamp(2.5rem, 20vw, 5rem) !important;
+                font-weight: bold !important;
+                text-shadow: 0 0 20px var(--highlight-color) !important;
+            }
+
+            .marquee-container {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                overflow: hidden;
+                pointer-events: none;
+                z-index: 2;
+            }
+
+            .marquee {
+                position: absolute;
+                white-space: nowrap;
+                color: rgba(255, 255, 255, 0.3);
+                font-size: clamp(0.8rem, 5vw, 1.5rem);
+                animation: marquee 20s linear infinite;
+                z-index: 2;
+            }
+
+            @keyframes marquee {
+                0% {
+                    transform: translateX(-100%);
+                }
+                100% {
+                    transform: translateX(100vw);
+                }
+            }
+
+            #history {
+                position: fixed;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                padding: 1rem;
+                border-radius: 10px 10px 0 0;
+                color: var(--text-color);
+                font-size: clamp(0.9rem, 4vw, 1.1rem);
+                line-height: 1.5;
+                z-index: 10;
+                transform: translateY(100%);
+                transition: transform 0.3s ease-in-out;
+                max-height: 50vh;
+                overflow-y: auto;
+            }
+
+            #history.show,
+            #upload-modal.show {
+                transform: translateY(0);
+            }
+
+            #history-close,
+            #upload-modal-close {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                background: none;
+                border: none;
+                color: var(--text-color);
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 0.2rem 0.5rem;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .controls {
+                width: 100%;
+                padding: 1rem;
+                z-index: 3;
+                margin-top: auto;
+            }
+
+            .class-selector {
+                width: 100%;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            #upload-btn {
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                border: none;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                padding: 0;
+                box-shadow: 0 2px 4px var(--shadow-color);
+            }
+
+            #upload-modal {
+                position: fixed;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                padding: 1rem;
+                border-radius: 10px 10px 0 0;
+                color: var(--text-color);
+                font-size: clamp(0.9rem, 4vw, 1.1rem);
+                line-height: 1.5;
+                z-index: 10;
+                transform: translateY(100%);
+                transition: transform 0.3s ease-in-out;
+                max-height: 50vh;
+                overflow-y: auto;
+            }
+
+            .upload-area {
+                margin: 1rem 0;
+                padding: 1rem;
+                border: 2px dashed rgba(255, 255, 255, 0.5);
+                border-radius: 10px;
+                text-align: center;
+                cursor: pointer;
+            }
+
+            .upload-area:hover {
+                border-color: var(--text-color);
+            }
+
+            #file-input {
+                display: none;
+            }
+
+            .upload-btn {
+                margin-top: 1rem;
+                padding: 0.5rem 1rem;
+                background-color: var(--primary-color);
+                color: var(--text-color);
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                box-shadow: 0 2px 4px var(--shadow-color);
+            }
+
+            #class-select {
+                width: 100%;
+                max-width: 300px;
+                padding: 0.5rem;
+                border-radius: 25px;
+                border: none;
+                background-color: rgba(255, 255, 255, 0.8);
+                color: var(--primary-color);
+                font-size: 1rem;
+                text-align: center;
+                box-shadow: 0 4px 6px var(--shadow-color);
+                cursor: pointer;
+                outline: none;
+            }
+
+            .speed-control {
+                width: 100%;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            input[type="range"] {
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+                display: block;
+            }
+
+            .buttons {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            button {
+                padding: clamp(0.5rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem);
+                font-size: clamp(1rem, 4vw, 1.5rem);
+                background: var(--primary-color);
+                color: var(--text-color);
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: 0 2px 4px var(--shadow-color);
+                transition: all 0.3s ease;
+                flex: 1 1 auto;
+                max-width: 200px;
+                min-width: 120px;
+                text-align: center;
+                white-space: nowrap;
+                font-weight: 500;
+                letter-spacing: 0.5px;
+            }
+
+            button:hover {
+                background: var(--accent-color);
+                box-shadow: 0 4px 8px var(--shadow-color);
+                transform: translateY(-2px);
+            }
+
+            button:active {
+                transform: scale(0.98) translateY(0);
+                box-shadow: 0 1px 2px var(--shadow-color);
+            }
+
+            @media screen and (max-width: 480px) {
+                .title {
+                    margin-top: 0.5rem;
+                }
+
+                .buttons {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                button {
+                    margin: 0.3rem 0;
+                    width: 100%;
+                    max-width: 250px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1 class="title">数学老师的多班级点名小助手</h1>
+            </div>
+
+            <div class="formulas-container">
+                <div class="formulas formula-top-left">
+                    $$A_n^m = \frac{n!}{(n-m)!}$$<br />
+                    $$C_n^m = \frac{n!}{m!(n-m)!}$$
+                </div>
+                <div class="formulas formula-bottom-right">
+                    $$(a+b)^n = \sum_{k=0}^n C_n^k a^{n-k}b^k$$
+                </div>
+            </div>
+
+            <div class="marquee-container">
+                <div class="marquee" style="top: 20%; animation-delay: 0s">
+                    排列数公式：$A_n^m = \frac{n!}{(n-m)!}$
+                </div>
+                <div class="marquee" style="top: 40%; animation-delay: 2s">
+                    组合数公式：$C_n^m = \frac{n!}{m!(n-m)!}$
+                </div>
+                <div class="marquee" style="top: 60%; animation-delay: 4s">
+                    二项式定理：$(a+b)^n = \sum_{k=0}^n C_n^k a^{n-k}b^k$
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div id="display">点击开始点名</div>
+            </div>
+
+            <div class="controls">
+                <div class="class-selector">
+                    <select id="class-select" onchange="changeClass()">
+                        <option value="class1">一班</option>
+                        <option value="class2">二班</option>
+                    </select>
+                    <button
+                        id="upload-btn"
+                        onclick="showUploadModal()"
+                        title="上传名单"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="speed-control">
+                    <input
+                        type="range"
+                        id="speed"
+                        min="0"
+                        max="100"
+                        value="50"
+                    />
+                </div>
+                <div class="buttons">
+                    <button id="startBtn" onclick="toggleRoll()">
+                        开始点名
+                    </button>
+                    <button onclick="showHistory()">点名记录</button>
+                    <button onclick="clearHistory()">清除记录</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="history">
+            <button id="history-close" onclick="hideHistory()">×</button>
+            <div id="history-content"></div>
+        </div>
+
+        <div id="upload-modal">
+            <button id="upload-modal-close" onclick="hideUploadModal()">
+                ×
+            </button>
+            <h3>上传班级名单</h3>
+            <p>请上传包含学生名单的文本文件，每行一个名字或用空格分隔。</p>
+            <div class="class-selector" style="margin-top: 1rem">
+                <label for="upload-class-select">选择要替换的班级：</label>
+                <select id="upload-class-select">
+                    <option value="class1">一班</option>
+                    <option value="class2">二班</option>
+                </select>
+            </div>
+            <div
+                class="upload-area"
+                onclick="document.getElementById('file-input').click()"
+            >
+                <p>点击或拖拽文件到此处</p>
+                <input
+                    type="file"
+                    id="file-input"
+                    accept=".txt,.csv,.doc,.docx"
+                />
+            </div>
+            <div id="file-name-display"></div>
+            <button class="upload-btn" onclick="processUploadedFile()">
+                确认上传
+            </button>
+        </div>
+
+        <script>
+            // 定义两个班级的名单
+            const classData = {
+                class1: {
+                    name: "一班",
+                    students:
+                        `曾一 王一 龙一 冯一 陈一 王二 张一 郑一 胡一 赵一 
+                       	   丁一 张二 彭一 林一 陈二 周一 刘一 吴一 郑二 蔡一 
+                           李一 胡二 吴二 叶一 曾二 吴三 蔡二 叶二 余一 林一 
+                           胡三 胡四 姚一 金一 李二 金二 胡五 郑一 何一 叶三 
+                           包一 金三`
+                            .split(/\s+/)
+                            .filter((name) => name.trim() !== ""),
+                    history: [],
+                },
+                class2: {
+                    name: "二班",
+                    students:
+                        `张三 李四 王五 赵六 钱七 孙八 周九 吴十 郑十一 王十二
+                           刘一 陈二 杨三 黄四 周五 吴六 郑七 冯八 陈九 褚十
+                           卫一 蒋二 沈三 韩四 杨五 朱六 秦七 尤八 许九 何十
+                           吕一 施二 张三 孔四 曹五 严六 华七 金八 魏九 陶十
+                           姜一 戚二 谢三 邹四 喻五 柏六 水七 窦八 章九 云十`
+                            .split(/\s+/)
+                            .filter((name) => name.trim() !== ""),
+                    history: [],
+                },
+            };
+
+            let currentClass = "class1"; // 默认选择一班
+            let names = classData[currentClass].students;
+            let isRolling = false;
+            let intervalId;
+            let currentIndex = 0;
+            let speed = 50;
+            let historyRecords = classData[currentClass].history;
+
+            // 检测设备
+            function isMobileDevice() {
+                return window.innerWidth <= 768;
+            }
+
+            // 设置适配移动设备的样式
+            function setMobileStyles() {
+                if (isMobileDevice()) {
+                    const marquees = document.querySelectorAll(".marquee");
+                    marquees.forEach((m, i) => {
+                        m.style.fontSize = "0.9rem";
+                    });
+                }
+            }
+
+            function toggleRoll() {
+                const display = document.getElementById("display");
+                const startBtn = document.getElementById("startBtn");
+
+                if (!isRolling) {
+                    startRoll();
+                    startBtn.textContent = "暂停点名";
+                    display.classList.remove("highlight");
+                } else {
+                    stopRoll();
+                    startBtn.textContent = "开始点名";
+                    historyRecords.unshift(names[currentIndex]);
+                    if (historyRecords.length > 10) historyRecords.pop();
+                    // 同步更新当前班级的历史记录
+                    classData[currentClass].history = historyRecords;
+                }
+                isRolling = !isRolling;
+            }
+
+            function startRoll() {
+                const speedControl = document.getElementById("speed");
+
+                // 移除之前的事件监听器以防重复添加
+                speedControl.removeEventListener("input", updateSpeed);
+                speedControl.addEventListener("input", updateSpeed);
+
+                intervalId = setInterval(() => {
+                    currentIndex = Math.floor(Math.random() * names.length);
+                    const name = names[currentIndex];
+                    const masked = name[0] + "*".repeat(name.length - 1);
+                    document.getElementById("display").textContent = masked;
+                }, 1000 / (speed / 5 + 10));
+            }
+
+            function stopRoll() {
+                clearInterval(intervalId);
+                const display = document.getElementById("display");
+                display.textContent = names[currentIndex];
+                display.classList.add("highlight");
+            }
+
+            function updateSpeed(e) {
+                speed = e.target.value;
+                if (isRolling) {
+                    clearInterval(intervalId);
+                    intervalId = setInterval(() => {
+                        currentIndex = Math.floor(Math.random() * names.length);
+                        const name = names[currentIndex];
+                        const masked = name[0] + "*".repeat(name.length - 1);
+                        document.getElementById("display").textContent = masked;
+                    }, 1000 / (speed / 5 + 10));
+                }
+            }
+
+            function showHistory() {
+                const historyDiv = document.getElementById("history");
+                const historyContent =
+                    document.getElementById("history-content");
+
+                if (historyRecords.length === 0) {
+                    historyContent.innerHTML = "<strong>暂无点名记录</strong>";
+                } else {
+                    historyContent.innerHTML =
+                        "<strong>最近点名记录：</strong><br>" +
+                        historyRecords.join("<br>");
+                }
+
+                historyDiv.classList.add("show");
+            }
+
+            function hideHistory() {
+                const historyDiv = document.getElementById("history");
+                historyDiv.classList.remove("show");
+            }
+
+            function clearHistory() {
+                historyRecords = [];
+                classData[currentClass].history = [];
+                const historyContent =
+                    document.getElementById("history-content");
+                historyContent.innerHTML = "";
+
+                // 如果历史记录面板可见，则更新内容
+                if (
+                    document
+                        .getElementById("history")
+                        .classList.contains("show")
+                ) {
+                    historyContent.innerHTML = "<strong>暂无点名记录</strong>";
+                }
+
+                // 清除页面中间显示的学生姓名，恢复初始状态
+                const display = document.getElementById("display");
+                display.textContent = "点击开始点名";
+                display.classList.remove("highlight");
+
+                // 如果正在点名，停止点名
+                if (isRolling) {
+                    toggleRoll();
+                }
+            }
+
+            // 切换班级的函数
+            function changeClass() {
+                // 如果正在点名，先停止
+                if (isRolling) {
+                    toggleRoll();
+                }
+
+                // 保存当前班级的历史记录
+                classData[currentClass].history = historyRecords;
+
+                // 获取新选择的班级
+                currentClass = document.getElementById("class-select").value;
+
+                // 更新名单和历史记录
+                names = classData[currentClass].students;
+                historyRecords = classData[currentClass].history;
+
+                // 更新显示
+                document.getElementById("display").textContent = "点击开始点名";
+                document
+                    .getElementById("display")
+                    .classList.remove("highlight");
+
+                // 如果历史记录面板可见，则更新内容
+                if (
+                    document
+                        .getElementById("history")
+                        .classList.contains("show")
+                ) {
+                    showHistory();
+                }
+            }
+
+            // 显示上传模态框
+            function showUploadModal() {
+                const uploadModal = document.getElementById("upload-modal");
+                uploadModal.classList.add("show");
+                // 清空之前的文件名显示
+                document.getElementById("file-name-display").textContent = "";
+                // 清空文件输入
+                document.getElementById("file-input").value = "";
+            }
+
+            // 隐藏上传模态框
+            function hideUploadModal() {
+                const uploadModal = document.getElementById("upload-modal");
+                uploadModal.classList.remove("show");
+            }
+
+            // 处理文件输入变化
+            document
+                .getElementById("file-input")
+                .addEventListener("change", function (event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        document.getElementById(
+                            "file-name-display"
+                        ).textContent = "已选择文件: " + file.name;
+                    }
+                });
+
+            // 处理上传的文件
+            function processUploadedFile() {
+                const fileInput = document.getElementById("file-input");
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    alert("请先选择文件");
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const content = e.target.result;
+                    // 处理文件内容，按空格或换行符分割
+                    const newNames = content
+                        .split(/[\s\n\r]+/)
+                        .filter((name) => name.trim() !== "");
+
+                    if (newNames.length === 0) {
+                        alert("文件内容为空或格式不正确");
+                        return;
+                    }
+
+                    // 获取用户选择的班级
+                    const selectedClass = document.getElementById(
+                        "upload-class-select"
+                    ).value;
+
+                    // 更新选择的班级的学生名单
+                    classData[selectedClass].students = newNames;
+
+                    // 如果更新的是当前显示的班级，则更新当前名单
+                    if (selectedClass === currentClass) {
+                        names = newNames;
+                    }
+
+                    // 提示成功
+                    alert(
+                        `成功更新${classData[selectedClass].name}名单，共${newNames.length}名学生`
+                    );
+
+                    // 隐藏模态框
+                    hideUploadModal();
+                };
+
+                reader.onerror = function () {
+                    alert("读取文件时发生错误");
+                };
+
+                reader.readAsText(file);
+            }
+
+            // 添加拖放支持
+            const uploadArea = document.querySelector(".upload-area");
+
+            uploadArea.addEventListener("dragover", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = "var(--text-color)";
+            });
+
+            uploadArea.addEventListener("dragleave", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = "rgba(255, 255, 255, 0.5)";
+            });
+
+            uploadArea.addEventListener("drop", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = "rgba(255, 255, 255, 0.5)";
+
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+
+                if (file) {
+                    const fileInput = document.getElementById("file-input");
+                    fileInput.files = dt.files;
+                    document.getElementById("file-name-display").textContent =
+                        "已选择文件: " + file.name;
+                }
+            });
+
+            // 添加窗口大小变化监听器
+            window.addEventListener("resize", setMobileStyles);
+
+            // 页面加载时初始化
+            document.addEventListener("DOMContentLoaded", function () {
+                setMobileStyles();
+            });
+
+            MathJax = {
+                tex: {
+                    inlineMath: [
+                        ["$", "$"],
+                        ["\\(", "\\)"],
+                    ],
+                },
+                svg: {
+                    fontCache: "global",
+                },
+            };
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
