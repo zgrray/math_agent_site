@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>数学公式记忆检测</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <!-- 添加MathJax配置 -->
+        <script type="text/javascript">
+            window.MathJax = {
+                tex: {
+                    inlineMath: [
+                        ["$", "$"],
+                        ["\\(", "\\)"],
+                    ],
+                    displayMath: [
+                        ["$$", "$$"],
+                        ["\\[", "\\]"],
+                    ],
+                    processEscapes: true,
+                },
+                options: {
+                    enableMenu: false,
+                },
+                startup: {
+                    ready: function () {
+                        MathJax.startup.defaultReady();
+                    },
+                },
+            };
+        </script>
+        <script
+            type="text/javascript"
+            id="MathJax-script"
+            async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+        ></script>
+
+        <!-- 添加CSS样式 -->
+        <style>
+            :root {
+                --primary-color: #4a6fa5;
+                --secondary-color: #e3f2fd;
+                --text-color: #333;
+                --light-gray: #f5f5f5;
+                --border-color: #ddd;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                background-color: var(--light-gray);
+                color: var(--text-color);
+                line-height: 1.6;
+                padding: 20px;
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            h2,
+            h3 {
+                color: var(--primary-color);
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            .page {
+                display: none;
+                padding: 30px;
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin-top: 20px;
+            }
+
+            .active {
+                display: block;
+                animation: fadeIn 0.5s;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .question {
+                margin-bottom: 30px;
+                border: 1px solid var(--border-color);
+                padding: 20px;
+                border-radius: 8px;
+                background-color: white;
+            }
+
+            .formula-display {
+                text-align: center;
+                margin: 15px 0;
+                font-size: 1.2em;
+            }
+
+            .options {
+                margin: 15px 0;
+            }
+
+            .option {
+                margin: 10px 0;
+                cursor: pointer;
+                padding: 12px 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                transition: all 0.3s ease;
+            }
+
+            .option:hover {
+                background-color: #f9f9f9;
+                transform: translateY(-2px);
+            }
+
+            .selected {
+                background-color: var(--secondary-color);
+                border-color: var(--primary-color);
+                font-weight: bold;
+            }
+
+            #timer {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                font-size: 18px;
+                background-color: var(--primary-color);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 20px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            }
+
+            button {
+                padding: 10px 20px;
+                margin: 10px 5px;
+                cursor: pointer;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                background-color: #3a5a8a;
+                transform: translateY(-2px);
+            }
+
+            button:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            #topics {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin-top: 30px;
+            }
+
+            #topics button {
+                min-width: 150px;
+            }
+
+            .progress-bar {
+                height: 10px;
+                background-color: #e0e0e0;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                overflow: hidden;
+            }
+
+            .progress {
+                height: 100%;
+                background-color: var(--primary-color);
+                transition: width 0.3s ease;
+            }
+
+            .question-number {
+                font-size: 0.9rem;
+                color: #666;
+                margin-bottom: 15px;
+            }
+
+            .result-item {
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                background-color: #f9f9f9;
+            }
+
+            .correct {
+                border-left: 4px solid #4caf50;
+            }
+
+            .incorrect {
+                border-left: 4px solid #f44336;
+            }
+
+            .answer-status {
+                font-weight: bold;
+                margin-top: 10px;
+            }
+
+            .correct .answer-status {
+                color: #4caf50;
+            }
+
+            .incorrect .answer-status {
+                color: #f44336;
+            }
+
+            /* 修复MathJax公式显示 */
+            .mjx-chtml {
+                display: inline-block !important;
+            }
+
+            .option .mjx-chtml {
+                margin: 0 3px;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 首页 -->
+        <div id="homePage" class="page active">
+            <h2>数学公式记忆检测</h2>
+            <div style="text-align: center; margin: 20px 0">
+                <div class="input-container">
+                    <label for="userName">请输入您的姓名：</label>
+                    <input
+                        type="text"
+                        id="userName"
+                        placeholder="请输入姓名"
+                        required
+                    />
+                </div>
+            </div>
+            <p style="text-align: center; margin-bottom: 20px">
+                选择你想要练习的知识点类型
+            </p>
+            <div id="topics">
+                <button onclick="startGame('trigonometry')">三角函数</button>
+                <button onclick="startGame('calculus')" disabled>
+                    对数指数
+                </button>
+                <button onclick="startGame('algebra')" disabled>导数</button>
+                <!-- 可扩展其他知识点按钮 -->
+            </div>
+            <div style="text-align: center; margin-top: 30px">
+                <button onclick="showLeaderboard()">答题榜</button>
+                <button onclick="clearLeaderboard()" class="danger-btn">
+                    清除榜单数据
+                </button>
+            </div>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="quizPage" class="page">
+            <div id="timer">剩余时间：5:00</div>
+            <div class="progress-bar">
+                <div id="progressBar" class="progress" style="width: 0%"></div>
+            </div>
+            <div class="question-number">
+                题目 <span id="currentQuestionNum">1</span>/<span
+                    id="totalQuestions"
+                    >15</span
+                >
+            </div>
+            <div id="questionContainer"></div>
+            <div style="display: flex; justify-content: space-between">
+                <button id="prevBtn" onclick="prevQuestion()" disabled>
+                    上一题
+                </button>
+                <button id="nextBtn" onclick="nextQuestion()" disabled>
+                    下一题
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="resultPage" class="page">
+            <h2>答题结果</h2>
+            <div style="text-align: center; margin: 20px 0">
+                <div style="font-size: 18px; margin-bottom: 10px">
+                    用户：<span id="resultUserName"></span>
+                </div>
+                <div style="font-size: 24px; margin-bottom: 10px">
+                    正确率：<span id="score"></span>
+                </div>
+                <div style="font-size: 18px; color: #666">
+                    用时：<span id="timeUsed"></span>
+                </div>
+            </div>
+            <div id="answerDetails"></div>
+            <div style="text-align: center; margin-top: 20px">
+                <button onclick="restartGame()">再玩一次</button>
+                <button onclick="showLeaderboard()">查看排行榜</button>
+                <button onclick="showPage('homePage')">返回首页</button>
+            </div>
+        </div>
+
+        <script>
+            // 题库数据
+            const questionBank = [
+                // 1. 平方和公式
+                {
+                    question:
+                        "### 平方和公式  \n**1**：$\\sin^2 \\alpha + \\cos^2 \\alpha =$",
+                    options: [
+                        "A. $0$",
+                        "B. $\\tan \\alpha$",
+                        "C. $\\sin(2\\alpha)$",
+                        "D. $1$",
+                    ],
+                    correct: 3,
+                },
+                // 2. 正切定义式
+                {
+                    question:
+                        "### 正切定义式  \n**2**：$\\frac{\\sin \\alpha}{\\cos \\alpha} =$",
+                    options: [
+                        "A. $\\cot \\alpha$",
+                        "B. $\\tan \\alpha$",
+                        "C. $\\sec \\alpha$",
+                        "D. $\\sin \\alpha + \\cos \\alpha$",
+                    ],
+                    correct: 1,
+                },
+                // 3-5. 周期性公式
+                {
+                    question:
+                        "### 周期性公式（$2\\pi$）  \n**3**：$\\sin(\\alpha + k \\cdot 2\\pi) =$",
+                    options: [
+                        "A. $\\sin (k\\alpha)$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $\\cos \\alpha$",
+                        "D. $\\sin\\alpha$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question: "**4**：$\\cos(\\alpha + k \\cdot 2\\pi) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\cos \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $\\cos(k\\alpha)$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question: "**5**：$\\tan(\\alpha + k \\cdot 2\\pi) =$",
+                    options: [
+                        "A. $\\tan (2\\alpha)$",
+                        "B. $-\\tan \\alpha$",
+                        "C. $\\tan \\alpha$",
+                        "D. $\\sin \\alpha$",
+                    ],
+                    correct: 2,
+                },
+                // 6-8. 负角公式
+                {
+                    question: "### 负角公式  \n**6**：$\\sin(-\\alpha) =$",
+                    options: [
+                        "A. $\\sin \\alpha$",
+                        "B. $\\cos \\alpha$",
+                        "C. $-\\sin \\alpha$",
+                        "D. $\\tan \\alpha$",
+                    ],
+                    correct: 2,
+                },
+                {
+                    question: "**7**：$\\cos(-\\alpha) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\cos \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $\\tan \\alpha$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question: "**8**：$\\tan(-\\alpha) =$",
+                    options: [
+                        "A. $\\tan \\alpha$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $-\\tan \\alpha$",
+                        "D. $\\sin \\alpha$",
+                    ],
+                    correct: 2,
+                },
+                // 9-11. π + α 公式
+                {
+                    question:
+                        "### $\\pi + \\alpha$ 公式  \n**9**：$\\cos(\\pi + \\alpha) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\cos \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $-\\sin \\alpha$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question: "**10**：$\\sin(\\pi + \\alpha) =$",
+                    options: [
+                        "A. $\\sin \\alpha$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $\\cos \\alpha$",
+                        "D. $-\\cos \\alpha$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question: "**11**：$\\tan(\\pi + \\alpha) =$",
+                    options: [
+                        "A. $\\tan \\alpha$",
+                        "B. $-\\tan \\alpha$",
+                        "C. $\\cot \\alpha$",
+                        "D. $\\sin \\alpha$",
+                    ],
+                    correct: 0,
+                },
+                // 12-14. π - α 公式
+                {
+                    question:
+                        "### $\\pi - \\alpha$ 公式  \n**12**：$\\tan(\\pi - \\alpha) =$",
+                    options: [
+                        "A. $\\tan \\alpha$",
+                        "B. $-\\tan \\alpha$",
+                        "C. $\\cot \\alpha$",
+                        "D. $\\sin \\alpha$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question: "**13**：$\\cos(\\pi - \\alpha) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $-\\cos \\alpha$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question: "**14**：$\\sin(\\pi - \\alpha) =$",
+                    options: [
+                        "A. $\\sin \\alpha$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $\\cos \\alpha$",
+                        "D. $-\\cos \\alpha$",
+                    ],
+                    correct: 0,
+                },
+                // 15-16. π/2 - α 公式
+                {
+                    question:
+                        "### $\\frac{\\pi}{2} - \\alpha$ 公式  \n**15**：$\\cos\\left( \\frac{\\pi}{2} - \\alpha \\right) =$",
+                    options: [
+                        "A. $-\\sin \\alpha$",
+                        "B. $\\cos \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $-\\cos \\alpha$",
+                    ],
+                    correct: 2,
+                },
+                {
+                    question:
+                        "**16**：$\\sin\\left( \\frac{\\pi}{2} - \\alpha \\right) =$",
+                    options: [
+                        "A. $-\\sin \\alpha$",
+                        "B. $\\cos(\\alpha + \\pi)$",
+                        "C. $\\cos \\alpha$",
+                        "D. $\\sin(\\alpha - \\pi)$",
+                    ],
+                    correct: 2,
+                },
+                // 17-18. π/2 + α 公式
+                {
+                    question:
+                        "### $\\frac{\\pi}{2} + \\alpha$ 公式  \n**17**：$\\sin\\left( \\frac{\\pi}{2} + \\alpha \\right) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\cos \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $-\\sin \\alpha$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question:
+                        "**18**：$\\cos\\left( \\frac{\\pi}{2} + \\alpha \\right) =$",
+                    options: [
+                        "A. $\\cos \\alpha$",
+                        "B. $-\\sin \\alpha$",
+                        "C. $\\sin \\alpha$",
+                        "D. $-\\cos \\alpha$",
+                    ],
+                    correct: 1,
+                },
+                // 19-24. 和差角公式
+                {
+                    question:
+                        "### 余弦和角公式  \n**19**：$\\cos(\\alpha + \\beta) =$",
+                    options: [
+                        "A. $\\cos\\alpha\\cos\\beta + \\sin\\alpha\\sin\\beta$",
+                        "B. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
+                        "C. $\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$",
+                        "D. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question:
+                        "### 余弦差角公式  \n**20**：$\\cos(\\alpha - \\beta) =$",
+                    options: [
+                        "A. $\\cos\\alpha\\cos\\beta + \\sin\\alpha\\sin\\beta$",
+                        "B. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
+                        "C. $\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$",
+                        "D. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question:
+                        "### 正弦和角公式  \n**21**：$\\sin(\\alpha + \\beta) =$",
+                    options: [
+                        "A. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
+                        "B. $\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$",
+                        "C. $\\cos\\alpha\\cos\\beta + \\sin\\alpha\\sin\\beta$",
+                        "D. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question:
+                        "### 正弦差角公式  \n**22**：$\\sin(\\alpha - \\beta) =$",
+                    options: [
+                        "A. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
+                        "B. $\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$",
+                        "C. $\\cos\\alpha\\cos\\beta + \\sin\\alpha\\sin\\beta$",
+                        "D. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question:
+                        "### 正切和角公式  \n**23**：$\\tan(\\alpha + \\beta) =$",
+                    options: [
+                        "A. $\\frac{\\tan\\alpha - \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}$",
+                        "B. $\\frac{\\tan\\alpha + \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}$",
+                        "C. $\\frac{\\tan\\alpha + \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}$",
+                        "D. $\\frac{\\tan\\alpha - \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question:
+                        "### 正切差角公式  \n**24**：$\\tan(\\alpha - \\beta) =$",
+                    options: [
+                        "A. $\\frac{\\tan\\alpha + \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}$",
+                        "B. $\\frac{\\tan\\alpha - \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}$",
+                        "C. $\\frac{\\tan\\alpha - \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}$",
+                        "D. $\\frac{\\tan\\alpha + \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}$",
+                    ],
+                    correct: 1,
+                },
+                // 25-27. 二倍角公式
+                {
+                    question:
+                        "### 二倍角公式（$\\sin$）  \n**25**：$\\sin 2\\alpha =$",
+                    options: [
+                        "A. $\\sin\\alpha + \\cos\\alpha$",
+                        "B. $\\cos^2\\alpha - \\sin^2\\alpha$",
+                        "C. $2\\sin\\alpha\\cos\\alpha$",
+                        "D. $\\frac{2\\tan\\alpha}{1 - \\tan^2\\alpha}$",
+                    ],
+                    correct: 2,
+                },
+                {
+                    question:
+                        "**26**：$\\cos 2\\alpha = 1 - 2\\sin^2\\alpha$ 的等价形式是？",
+                    options: [
+                        "A. $\\cos 2\\alpha = 1 + 2\\cos^2\\alpha$",
+                        "B. $\\cos 2\\alpha = 2\\cos^2\\alpha - 1$",
+                        "C. $\\cos 2\\alpha = \\sin^2\\alpha - \\cos^2\\alpha$",
+                        "D. $\\cos 2\\alpha = 1 - \\sin^2\\alpha$",
+                    ],
+                    correct: 1,
+                },
+                {
+                    question: "**27**：$\\tan 2\\alpha =$",
+                    options: [
+                        "A. $\\frac{2\\tan\\alpha}{1 - \\tan^2\\alpha}$",
+                        "B. $\\frac{\\tan\\alpha}{1 - \\tan^2\\alpha}$",
+                        "C. $\\frac{2\\tan\\alpha}{1 + \\tan^2\\alpha}$",
+                        "D. $\\frac{\\tan\\alpha + \\tan\\alpha}{1 - \\tan\\alpha}$",
+                    ],
+                    correct: 0,
+                },
+                // 28. 辅助角公式
+                {
+                    question:
+                        "### 辅助角公式  \n**28**：将 $a\\sin\\alpha + b\\cos\\alpha$ 化简为 $R\\sin(\\alpha + \\phi)$，则 $R =$",
+                    options: [
+                        "A. $\\sqrt{a^2 + b^2}$",
+                        "B. $a + b$",
+                        "C. $\\sqrt{a^2 - b^2}$",
+                        "D. $\\frac{a}{b}$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question:
+                        "**29**：将 $\\sin\\alpha + \\cos\\alpha$ 化简为 $\\sqrt{2}\\sin(\\alpha + \\phi)$，则 $\\phi =$",
+                    options: [
+                        "A. $\\frac{\\pi}{2}$",
+                        "B. $\\frac{\\pi}{6}$",
+                        "C. $\\frac{\\pi}{3}$",
+                        "D. $\\frac{\\pi}{4}$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question:
+                        "**30**：化简 $\\sin(\\alpha + \\frac{7\\pi}{2})$ 得到",
+                    options: [
+                        "A. $\\sin\\alpha$",
+                        "B. $\\cos\\alpha$",
+                        "C. $-\\sin\\alpha$",
+                        "D. $-\\cos\\alpha$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question:
+                        "**31**：化简 $\\cos(\\alpha + \\frac{7\\pi}{2})$ 得到",
+                    options: [
+                        "A. $\\sin\\alpha$",
+                        "B. $\\cos\\alpha$",
+                        "C. $-\\sin\\alpha$",
+                        "D. $-\\cos\\alpha$",
+                    ],
+                    correct: 0,
+                },
+                {
+                    question: "**32**：以下那个选项和 $1+\\cos 2\\alpha$ 等价",
+                    options: [
+                        "A. $\\sin^2\\alpha$",
+                        "B. $\\cos^2\\alpha$",
+                        "C. $2 \\sin^2\\alpha$",
+                        "D. $2 \\cos^2\\alpha$",
+                    ],
+                    correct: 3,
+                },
+                {
+                    question: "**33**：以下那个选项和 $1-\\cos 2\\alpha$ 等价",
+                    options: [
+                        "A. $\\sin^2\\alpha$",
+                        "B. $\\cos^2\\alpha$",
+                        "C. $2 \\sin^2\\alpha$",
+                        "D. $2 \\cos^2\\alpha$",
+                    ],
+                    correct: 2,
+                },
+            ];
+
+            let currentQuestions = []; // 当前随机选取的题目
+            let currentQuestionIndex = 0;
+            let userAnswers = [];
+            let timeLeft = 300; // 5分钟（秒）
+            let timerId;
+            let startTime;
+
+            // 在现有变量声明后添加
+            let currentUserName = "";
+            let currentTopic = "";
+
+            // 修改startGame函数
+            function startGame(topic) {
+                // 获取用户名
+                currentUserName = document
+                    .getElementById("userName")
+                    .value.trim();
+                if (!currentUserName) {
+                    alert("请输入您的姓名");
+                    return;
+                }
+
+                currentTopic = topic;
+
+                // 初始化游戏
+                currentQuestions = getRandomQuestions(questionBank, 15);
+                currentQuestionIndex = 0;
+                userAnswers = Array(currentQuestions.length).fill(null);
+                timeLeft = 300;
+                startTime = new Date();
+
+                document.getElementById("totalQuestions").textContent =
+                    currentQuestions.length;
+                updateQuestionNumber();
+                updateProgressBar();
+
+                // 确保正确切换到答题页面
+                showPage("quizPage");
+                startTimer();
+                showQuestion();
+
+                console.log("游戏已开始，题目数量：", currentQuestions.length);
+            }
+
+            // 修改finishQuiz函数
+            function finishQuiz() {
+                clearInterval(timerId);
+                const endTime = new Date();
+                const timeUsed = Math.floor((endTime - startTime) / 1000);
+
+                showPage("resultPage");
+
+                // 计算得分
+                const correctCount = currentQuestions.reduce(
+                    (acc, q, i) => acc + (userAnswers[i] === q.correct ? 1 : 0),
+                    0
+                );
+                const scorePercentage = (
+                    (correctCount / currentQuestions.length) *
+                    100
+                ).toFixed(1);
+
+                // 显示用户名
+                document.getElementById("resultUserName").textContent =
+                    currentUserName;
+
+                // 显示结果
+                document.getElementById(
+                    "score"
+                ).textContent = `${correctCount}/${currentQuestions.length} (${scorePercentage}%)`;
+
+                // 显示用时
+                const timeUsedMinutes = Math.floor(timeUsed / 60);
+                const timeUsedSeconds = timeUsed % 60;
+                document.getElementById(
+                    "timeUsed"
+                ).textContent = `${timeUsedMinutes}分${timeUsedSeconds}秒`;
+
+                // 显示详细解答
+                const details = document.getElementById("answerDetails");
+                details.innerHTML = currentQuestions
+                    .map((q, i) => {
+                        const isCorrect = userAnswers[i] === q.correct;
+
+                        // 提取问题内容，但移除题号和公式类型
+                        let questionText = q.question
+                            .replace(/### .*?\n/, "") // 移除标题行
+                            .replace(/\*\*\d+\*\*：/, ""); // 移除题号
+
+                        return `
+            <div class="result-item ${isCorrect ? "correct" : "incorrect"}">
+                <div class="formula-display">${questionText}</div>
+                <p>你的答案：${
+                    userAnswers[i] !== null
+                        ? q.options[userAnswers[i]]
+                        : "未作答"
+                }</p>
+                <p>正确答案：${q.options[q.correct]}</p>
+                <p class="answer-status">${
+                    isCorrect ? "✓ 回答正确" : "✗ 回答错误"
+                }</p>
+            </div>
+        `;
+                    })
+                    .join("");
+
+                // 渲染数学公式
+                if (typeof MathJax !== "undefined") {
+                    MathJax.typesetPromise([details]).catch(function (err) {
+                        console.log("MathJax typeset error:", err);
+                    });
+                }
+
+                // 保存成绩到本地存储
+                saveScore(
+                    currentUserName,
+                    currentTopic,
+                    scorePercentage,
+                    timeUsed
+                );
+            }
+
+            // 添加保存成绩的函数
+            // 修复保存成绩的函数
+            function saveScore(userName, topic, score, timeUsed) {
+                // 从本地存储获取现有数据
+                let leaderboard =
+                    JSON.parse(
+                        localStorage.getItem("mathFormulaLeaderboard")
+                    ) || {};
+
+                // 确保主题对象存在
+                if (!leaderboard[topic]) {
+                    leaderboard[topic] = [];
+                }
+
+                // 添加新成绩
+                leaderboard[topic].push({
+                    name: userName,
+                    score: parseFloat(score),
+                    time: timeUsed,
+                    date: new Date().toISOString(),
+                });
+
+                // 保存回本地存储
+                localStorage.setItem(
+                    "mathFormulaLeaderboard",
+                    JSON.stringify(leaderboard)
+                );
+                console.log("成绩已保存", leaderboard);
+            }
+
+            // 修复显示排行榜函数
+            function showLeaderboard() {
+                console.log("显示排行榜");
+                showPage("leaderboardPage");
+                updateLeaderboard();
+            }
+
+            // 修复更新排行榜显示函数
+            function updateLeaderboard() {
+                const topic = document.getElementById("leaderboardTopic").value;
+                const container = document.getElementById(
+                    "leaderboardContainer"
+                );
+
+                console.log("更新排行榜，主题:", topic);
+
+                // 从本地存储获取数据
+                let leaderboard =
+                    JSON.parse(
+                        localStorage.getItem("mathFormulaLeaderboard")
+                    ) || {};
+                console.log("获取到的排行榜数据:", leaderboard);
+
+                let topicData = leaderboard[topic] || [];
+                console.log("当前主题数据:", topicData);
+
+                // 按分数排序（从高到低）
+                topicData.sort((a, b) => {
+                    if (b.score !== a.score) {
+                        return b.score - a.score; // 分数高的排前面
+                    }
+                    return a.time - b.time; // 如果分数相同，用时少的排前面
+                });
+
+                // 生成HTML
+                if (topicData.length === 0) {
+                    container.innerHTML =
+                        '<div class="empty-message">暂无数据</div>';
+                    return;
+                }
+
+                let html = `
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>姓名</th>
+                    <th>分数</th>
+                    <th>用时</th>
+                    <th>日期</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+                topicData.forEach((entry, index) => {
+                    const minutes = Math.floor(entry.time / 60);
+                    const seconds = entry.time % 60;
+                    const timeStr = `${minutes}分${seconds}秒`;
+                    const date = new Date(entry.date).toLocaleDateString(
+                        "zh-CN"
+                    );
+
+                    html += `
+            <tr>
+                <td class="${index < 3 ? "rank-" + (index + 1) : ""}">${
+                        index + 1
+                    }</td>
+                <td>${entry.name}</td>
+                <td>${entry.score}%</td>
+                <td>${timeStr}</td>
+                <td>${date}</td>
+            </tr>
+        `;
+                });
+
+                html += `
+            </tbody>
+        </table>
+    `;
+
+                container.innerHTML = html;
+
+                // 确保MathJax渲染
+                if (typeof MathJax !== "undefined") {
+                    MathJax.typesetPromise([container]).catch(function (err) {
+                        console.log("MathJax typeset error:", err);
+                    });
+                }
+            }
+
+            // 清除排行榜数据
+            function clearLeaderboard() {
+                if (confirm("确定要清除所有排行榜数据吗？此操作不可恢复！")) {
+                    localStorage.removeItem("mathFormulaLeaderboard");
+                    alert("排行榜数据已清除");
+                    // 如果当前在排行榜页面，更新显示
+                    if (
+                        document
+                            .getElementById("leaderboardPage")
+                            .classList.contains("active")
+                    ) {
+                        updateLeaderboard();
+                    }
+                }
+            }
+            function getRandomQuestions(bank, count) {
+                // 随机选取不重复的题目
+                return bank
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, Math.min(count, bank.length));
+            }
+
+            function showQuestion() {
+                const container = document.getElementById("questionContainer");
+                const question = currentQuestions[currentQuestionIndex];
+
+                // 提取标题和问题内容，但不显示题号
+                let titleMatch = question.question.match(
+                    /### (.*?)(?:\s+\n|\n|$)/
+                );
+                let title = titleMatch ? titleMatch[1] : "";
+
+                // 移除题号和公式类型说明，只保留公式部分
+                let questionText = question.question
+                    .replace(/### .*?\n/, "") // 移除标题行
+                    .replace(/\*\*\d+\*\*：/, ""); // 移除题号
+
+                let html = `
+        <div class="question">
+            <div class="formula-display">${questionText}</div>
+            <div class="options">
+    `;
+
+                question.options.forEach((opt, index) => {
+                    const isSelected =
+                        userAnswers[currentQuestionIndex] === index;
+                    html += `
+            <div class="option ${
+                isSelected ? "selected" : ""
+            }" onclick="selectAnswer(${index})">
+                ${opt}
+            </div>
+        `;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+
+                // 更新按钮状态
+                document.getElementById("prevBtn").disabled =
+                    currentQuestionIndex === 0;
+                document.getElementById("nextBtn").disabled =
+                    userAnswers[currentQuestionIndex] === null;
+
+                // 更新进度
+                updateQuestionNumber();
+                updateProgressBar();
+
+                // 渲染数学公式
+                if (typeof MathJax !== "undefined") {
+                    MathJax.typesetPromise([container]).catch(function (err) {
+                        console.log("MathJax typeset error:", err);
+                    });
+                }
+            }
+
+            function updateQuestionNumber() {
+                document.getElementById("currentQuestionNum").textContent =
+                    currentQuestionIndex + 1;
+            }
+
+            function updateProgressBar() {
+                const progress =
+                    ((currentQuestionIndex + 1) / currentQuestions.length) *
+                    100;
+                document.getElementById(
+                    "progressBar"
+                ).style.width = `${progress}%`;
+            }
+
+            function selectAnswer(index) {
+                // 处理选项选择
+                const options = document.getElementsByClassName("option");
+                Array.from(options).forEach((opt) =>
+                    opt.classList.remove("selected")
+                );
+                options[index].classList.add("selected");
+                document.getElementById("nextBtn").disabled = false;
+
+                // 保存用户答案
+                userAnswers[currentQuestionIndex] = index;
+            }
+
+            function prevQuestion() {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    showQuestion();
+                }
+            }
+
+            function nextQuestion() {
+                if (currentQuestionIndex < currentQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    showQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }
+
+            function startTimer() {
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    document.getElementById(
+                        "timer"
+                    ).textContent = `剩余时间：${minutes}:${seconds
+                        .toString()
+                        .padStart(2, "0")}`;
+
+                    if (timeLeft <= 0) finishQuiz();
+                }, 1000);
+            }
+
+            function finishQuiz() {
+                clearInterval(timerId);
+                const endTime = new Date();
+                const timeUsed = Math.floor((endTime - startTime) / 1000);
+
+                showPage("resultPage");
+
+                // 计算得分
+                const correctCount = currentQuestions.reduce(
+                    (acc, q, i) => acc + (userAnswers[i] === q.correct ? 1 : 0),
+                    0
+                );
+                const scorePercentage = (
+                    (correctCount / currentQuestions.length) *
+                    100
+                ).toFixed(1);
+
+                // 显示用户名
+                document.getElementById("resultUserName").textContent =
+                    currentUserName;
+
+                // 显示结果
+                document.getElementById(
+                    "score"
+                ).textContent = `${correctCount}/${currentQuestions.length} (${scorePercentage}%)`;
+
+                // 显示用时
+                const timeUsedMinutes = Math.floor(timeUsed / 60);
+                const timeUsedSeconds = timeUsed % 60;
+                document.getElementById(
+                    "timeUsed"
+                ).textContent = `${timeUsedMinutes}分${timeUsedSeconds}秒`;
+
+                // 显示详细解答
+                const details = document.getElementById("answerDetails");
+                details.innerHTML = currentQuestions
+                    .map((q, i) => {
+                        const isCorrect = userAnswers[i] === q.correct;
+
+                        // 提取问题内容，但移除题号和公式类型
+                        let questionText = q.question
+                            .replace(/### .*?\n/, "") // 移除标题行
+                            .replace(/\*\*\d+\*\*：/, ""); // 移除题号
+
+                        return `
+            <div class="result-item ${isCorrect ? "correct" : "incorrect"}">
+                <div class="formula-display">${questionText}</div>
+                <p>你的答案：${
+                    userAnswers[i] !== null
+                        ? q.options[userAnswers[i]]
+                        : "未作答"
+                }</p>
+                <p>正确答案：${q.options[q.correct]}</p>
+                <p class="answer-status">${
+                    isCorrect ? "✓ 回答正确" : "✗ 回答错误"
+                }</p>
+            </div>
+        `;
+                    })
+                    .join("");
+
+                // 渲染数学公式
+                if (typeof MathJax !== "undefined") {
+                    MathJax.typesetPromise([details]).catch(function (err) {
+                        console.log("MathJax typeset error:", err);
+                    });
+                }
+
+                // 保存成绩到本地存储
+                saveScore(
+                    currentUserName,
+                    currentTopic,
+                    scorePercentage,
+                    timeUsed
+                );
+                console.log(
+                    "已保存成绩:",
+                    currentUserName,
+                    currentTopic,
+                    scorePercentage,
+                    timeUsed
+                );
+            }
+
+            function showPage(pageId) {
+                document
+                    .querySelectorAll(".page")
+                    .forEach((page) => page.classList.remove("active"));
+                document.getElementById(pageId).classList.add("active");
+            }
+
+            function restartGame() {
+                startGame("trigonometry");
+            }
+
+            // 移除或简化Markdown解析函数
+            // const marked = {
+            //     parse: text => {
+            //         return text
+            //             .replace(/### (.*)/g, '<h3>$1</h3>')
+            //             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            //             .replace(/\n/g, '<br>');
+            //     }
+            // };
+
+            // 添加页面加载完成后的初始化
+            document.addEventListener("DOMContentLoaded", function () {
+                console.log("页面加载完成");
+
+                // 确保首页显示
+                showPage("homePage");
+
+                // 初始化MathJax
+                if (typeof MathJax !== "undefined") {
+                    MathJax.startup.promise.then(() => {
+                        console.log("MathJax初始化完成");
+                    });
+                }
+
+                // 检查本地存储中是否有排行榜数据
+                const leaderboardData = localStorage.getItem(
+                    "mathFormulaLeaderboard"
+                );
+                console.log("本地存储中的排行榜数据:", leaderboardData);
+            });
+        </script>
+    </body>
+</html>
+
+<!-- 排行榜页面 -->
+<div id="leaderboardPage" class="page">
+    <h2>答题排行榜</h2>
+    <div class="topic-selector">
+        <label for="leaderboardTopic">选择知识点：</label>
+        <select id="leaderboardTopic" onchange="updateLeaderboard()">
+            <option value="trigonometry">三角函数</option>
+            <option value="calculus">微积分</option>
+            <option value="algebra">代数</option>
+        </select>
+    </div>
+    <div id="leaderboardContainer">
+        <!-- 排行榜内容将在这里动态生成 -->
+    </div>
+    <div style="text-align: center; margin-top: 20px">
+        <button onclick="showPage('homePage')">返回首页</button>
+    </div>
+</div>
+
+<style>
+    /* 现有样式保持不变 */
+
+    /* 添加新样式 */
+    .input-container {
+        margin: 15px auto;
+        max-width: 300px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .danger-btn {
+        background-color: #e74c3c;
+    }
+
+    .danger-btn:hover {
+        background-color: #c0392b;
+    }
+
+    .topic-selector {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    select {
+        padding: 8px 15px;
+        border-radius: 5px;
+        border: 1px solid var(--border-color);
+        font-size: 16px;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .leaderboard-table th {
+        background-color: var(--secondary-color);
+        font-weight: bold;
+    }
+
+    .leaderboard-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .leaderboard-table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .rank-1 {
+        color: gold;
+        font-weight: bold;
+    }
+
+    .rank-2 {
+        color: silver;
+        font-weight: bold;
+    }
+
+    .rank-3 {
+        color: #cd7f32; /* 铜色 */
+        font-weight: bold;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
+    }
+</style>
