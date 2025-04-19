@@ -256,10 +256,8 @@
             </p>
             <div id="topics">
                 <button onclick="startGame('trigonometry')">三角函数</button>
-                <button onclick="startGame('calculus')" disabled>
-                    对数指数
-                </button>
-                <button onclick="startGame('algebra')" disabled>导数</button>
+                <button onclick="startGame('calculus')">对数指数</button>
+                <button onclick="startGame('algebra')">导数</button>
                 <!-- 可扩展其他知识点按钮 -->
             </div>
             <div style="text-align: center; margin-top: 30px">
@@ -318,6 +316,7 @@
         <script>
             // 题库数据
             const questionBank = [
+                // 现有的三角函数题目
                 // 1. 平方和公式
                 {
                     question:
@@ -329,6 +328,7 @@
                         "D. $1$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 // 2. 正切定义式
                 {
@@ -341,6 +341,7 @@
                         "D. $\\sin \\alpha + \\cos \\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 // 3-5. 周期性公式
                 {
@@ -353,6 +354,7 @@
                         "D. $\\sin\\alpha$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question: "**4**：$\\cos(\\alpha + k \\cdot 2\\pi) =$",
@@ -363,6 +365,7 @@
                         "D. $\\cos(k\\alpha)$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question: "**5**：$\\tan(\\alpha + k \\cdot 2\\pi) =$",
@@ -373,6 +376,7 @@
                         "D. $\\sin \\alpha$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 // 6-8. 负角公式
                 {
@@ -384,6 +388,7 @@
                         "D. $\\tan \\alpha$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 {
                     question: "**7**：$\\cos(-\\alpha) =$",
@@ -394,6 +399,7 @@
                         "D. $\\tan \\alpha$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question: "**8**：$\\tan(-\\alpha) =$",
@@ -404,6 +410,7 @@
                         "D. $\\sin \\alpha$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 // 9-11. π + α 公式
                 {
@@ -416,6 +423,7 @@
                         "D. $-\\sin \\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question: "**10**：$\\sin(\\pi + \\alpha) =$",
@@ -426,6 +434,7 @@
                         "D. $-\\cos \\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question: "**11**：$\\tan(\\pi + \\alpha) =$",
@@ -436,6 +445,7 @@
                         "D. $\\sin \\alpha$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 // 12-14. π - α 公式
                 {
@@ -448,6 +458,7 @@
                         "D. $\\sin \\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question: "**13**：$\\cos(\\pi - \\alpha) =$",
@@ -458,6 +469,7 @@
                         "D. $-\\cos \\alpha$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question: "**14**：$\\sin(\\pi - \\alpha) =$",
@@ -468,6 +480,7 @@
                         "D. $-\\cos \\alpha$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 // 15-16. π/2 - α 公式
                 {
@@ -480,6 +493,7 @@
                         "D. $-\\cos \\alpha$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -491,6 +505,7 @@
                         "D. $\\sin(\\alpha - \\pi)$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 // 17-18. π/2 + α 公式
                 {
@@ -503,6 +518,7 @@
                         "D. $-\\sin \\alpha$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -514,6 +530,7 @@
                         "D. $-\\cos \\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 // 19-24. 和差角公式
                 {
@@ -526,6 +543,7 @@
                         "D. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -537,6 +555,7 @@
                         "D. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -548,6 +567,7 @@
                         "D. $\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -559,6 +579,7 @@
                         "D. $\\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -570,6 +591,7 @@
                         "D. $\\frac{\\tan\\alpha - \\tan\\beta}{1 - \\tan\\alpha\\tan\\beta}$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -581,6 +603,7 @@
                         "D. $\\frac{\\tan\\alpha + \\tan\\beta}{1 + \\tan\\alpha\\tan\\beta}$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 // 25-27. 二倍角公式
                 {
@@ -593,6 +616,7 @@
                         "D. $\\frac{2\\tan\\alpha}{1 - \\tan^2\\alpha}$",
                     ],
                     correct: 2,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -604,6 +628,7 @@
                         "D. $\\cos 2\\alpha = 1 - \\sin^2\\alpha$",
                     ],
                     correct: 1,
+                    type: "trigonometry",
                 },
                 {
                     question: "**27**：$\\tan 2\\alpha =$",
@@ -614,6 +639,7 @@
                         "D. $\\frac{\\tan\\alpha + \\tan\\alpha}{1 - \\tan\\alpha}$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 // 28. 辅助角公式
                 {
@@ -626,6 +652,7 @@
                         "D. $\\frac{a}{b}$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -637,6 +664,7 @@
                         "D. $\\frac{\\pi}{4}$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -648,6 +676,7 @@
                         "D. $-\\cos\\alpha$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question:
@@ -659,6 +688,7 @@
                         "D. $-\\cos\\alpha$",
                     ],
                     correct: 0,
+                    type: "trigonometry",
                 },
                 {
                     question: "**32**：以下那个选项和 $1+\\cos 2\\alpha$ 等价",
@@ -669,6 +699,7 @@
                         "D. $2 \\cos^2\\alpha$",
                     ],
                     correct: 3,
+                    type: "trigonometry",
                 },
                 {
                     question: "**33**：以下那个选项和 $1-\\cos 2\\alpha$ 等价",
@@ -679,6 +710,399 @@
                         "D. $2 \\cos^2\\alpha$",
                     ],
                     correct: 2,
+                    type: "trigonometry", // 添加类型标记
+                },
+                // 添加对数指数公式题目
+                // 对数基本公式
+                {
+                    question: "### 对数基本公式  \n**1**：$\\log_a(MN) =$",
+                    options: [
+                        "A. $\\log_a M + \\log_a N$",
+                        "B. $\\log_a M \\cdot \\log_a N$",
+                        "C. $\\log_a M - \\log_a N$",
+                        "D. $\\frac{\\log_a M}{\\log_a N}$",
+                    ],
+                    correct: 0,
+                    type: "logarithm", // 添加类型标记
+                },
+                {
+                    question: "**2**：$\\log_a\\left(\\frac{M}{N}\\right) =$",
+                    options: [
+                        "A. $\\frac{\\log_a M}{\\log_a N}$",
+                        "B. $\\log_a M - \\log_a N$",
+                        "C. $\\log_a M + \\log_a N$",
+                        "D. $\\log_a M \\cdot \\log_a N$",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                {
+                    question: "**3**：$\\log_a(M^n) =$",
+                    options: [
+                        "A. $(\\log_a M)^n$",
+                        "B. $n \\cdot \\log_a M$",
+                        "C. $\\log_a^n M$",
+                        "D. $n^{\\log_a M}$",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                // 换底公式
+                {
+                    question: "### 对数换底公式  \n**4**：$\\log_a M =$",
+                    options: [
+                        "A. $\\frac{\\log_b M}{\\log_b a}$",
+                        "B. $\\frac{\\log_b a}{\\log_b M}$",
+                        "C. $\\log_b M \\cdot \\log_b a$",
+                        "D. $\\frac{\\log_b M}{a}$",
+                    ],
+                    correct: 0,
+                    type: "logarithm",
+                },
+                // 特殊对数
+                {
+                    question: "### 特殊对数  \n**5**：$\\log_a a =$",
+                    options: ["A. $a$", "B. $0$", "C. $1$", "D. $-1$"],
+                    correct: 2,
+                    type: "logarithm",
+                },
+                {
+                    question: "**6**：$\\log_a 1 =$",
+                    options: ["A. $a$", "B. $-1$", "C. $1$", "D. $0$"],
+                    correct: 3,
+                    type: "logarithm",
+                },
+                // 指数与对数关系
+                {
+                    question:
+                        "### 指数与对数关系  \n**7**：若 $\\log_a M = b$，则 $M =$",
+                    options: [
+                        "A. $a^b$",
+                        "B. $b^a$",
+                        "C. $\\log_b a$",
+                        "D. $a \\cdot b$",
+                    ],
+                    correct: 0,
+                    type: "logarithm",
+                },
+                // 自然对数
+                {
+                    question: "### 自然对数  \n**8**：$\\ln e =$",
+                    options: ["A. $e$", "B. $0$", "C. $1$", "D. $-1$"],
+                    correct: 2,
+                    type: "logarithm",
+                },
+                {
+                    question: "**9**：$e^{\\ln x} =$",
+                    options: [
+                        "A. $\\ln(e^x)$",
+                        "B. $x$",
+                        "C. $e^x$",
+                        "D. $\\frac{1}{x}$",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                // 指数函数性质
+                {
+                    question: "### 指数函数性质  \n**10**：$a^x \\cdot a^y =$",
+                    options: [
+                        "A. $a^{x+y}$",
+                        "B. $a^{xy}$",
+                        "C. $(a^x)^y$",
+                        "D. $a^{x-y}$",
+                    ],
+                    correct: 0,
+                    type: "logarithm",
+                },
+                {
+                    question: "**11**：$\\frac{a^x}{a^y} =$",
+                    options: [
+                        "A. $a^{\\frac{x}{y}}$",
+                        "B. $a^{x-y}$",
+                        "C. $a^{xy}$",
+                        "D. $a^{y-x}$",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                {
+                    question: "**12**：$(a^x)^y =$",
+                    options: [
+                        "A. $a^{x+y}$",
+                        "B. $a^{xy}$",
+                        "C. $a^{\\frac{x}{y}}$",
+                        "D. $a^{x-y}$",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                // 复合对数
+                {
+                    question: "### 复合对数  \n**13**：$\\log_a(\\log_b M) =$",
+                    options: [
+                        "A. $\\log_{ab} M$",
+                        "B. $\\log_b(\\log_a M)$",
+                        "C. $\\log_a M \\cdot \\log_b M$",
+                        "D. 无法简化",
+                    ],
+                    correct: 3,
+                    type: "logarithm",
+                },
+                // 对数方程
+                {
+                    question:
+                        "### 对数方程  \n**14**：若 $\\log_2 x + \\log_4 x = 3$，则 $x =$",
+                    options: ["A. $16$", "B. $8$", "C. $4$", "D. $2$"],
+                    correct: 2,
+                    type: "logarithm",
+                },
+                {
+                    question:
+                        "**15**：若 $\\log_{10}(x^2 - 5x + 7) = 0$，则 $x =$",
+                    options: ["A. $-1$", "B. $0$", "C. $1$", "D. $2$ 或 $3$"],
+                    correct: 3,
+                    type: "logarithm",
+                },
+                // 指数方程
+                {
+                    question: "### 指数方程  \n**16**：若 $2^x = 8$，则 $x =$",
+                    options: [
+                        "A. $6$",
+                        "B. $4$",
+                        "C. $3$",
+                        "D. $\\frac{3}{2}$",
+                    ],
+                    correct: 2,
+                    type: "logarithm",
+                },
+                {
+                    question: "**17**：若 $3^{2x-1} = 27$，则 $x =$",
+                    options: ["A. $4$", "B. $3$", "C. $2$", "D. $1$"],
+                    correct: 2,
+                    type: "logarithm",
+                },
+                // 对数不等式
+                {
+                    question:
+                        "### 对数不等式  \n**18**：若 $a > 1$，则 $\\log_a x$ 是",
+                    options: [
+                        "A. 在 $(0,+\\infty)$ 上的增函数",
+                        "B. 在 $(0,+\\infty)$ 上的减函数",
+                        "C. 在 $(-\\infty,+\\infty)$ 上的增函数",
+                        "D. 在 $(-\\infty,+\\infty)$ 上的减函数",
+                    ],
+                    correct: 0,
+                    type: "logarithm",
+                },
+                {
+                    question: "**19**：若 $0 < a < 1$，则 $\\log_a x$ 是",
+                    options: [
+                        "A. 在 $(0,+\\infty)$ 上的增函数",
+                        "B. 在 $(0,+\\infty)$ 上的减函数",
+                        "C. 在 $(-\\infty,+\\infty)$ 上的增函数",
+                        "D. 在 $(-\\infty,+\\infty)$ 上的减函数",
+                    ],
+                    correct: 1,
+                    type: "logarithm",
+                },
+                // 常见对数值
+                {
+                    question: "### 常见对数值  \n**20**：$\\log_{10} 1000 =$",
+                    options: ["A. $10$", "B. $100$", "C. $30$", "D. $3$"],
+                    correct: 3,
+                    type: "logarithm",
+                },
+                // 导数基本公式
+                {
+                    question: "### 常数和变量的导数  \n**1**：$(C)’ =$",
+                    options: ["A. $C$", "B. $0$", "C. $1$", "D. $-C$"],
+                    correct: 1,
+                    type: "derivative",
+                },
+                {
+                    question: "**2**：$(x)’ =$",
+                    options: ["A. $0$", "B. $x$", "C. $1$", "D. $x^2$"],
+                    correct: 2,
+                    type: "derivative",
+                },
+                {
+                    question: "**3**：$(x^n)’ =$",
+                    options: [
+                        "A. $nx^{n-1}$",
+                        "B. $nx^n$",
+                        "C. $n^x$",
+                        "D. $x^{n-1}$",
+                    ],
+                    correct: 0,
+                    type: "derivative",
+                },
+                {
+                    question: "### 三角函数的导数  \n**4**：$(\\sin x)’ =$",
+                    options: [
+                        "A. $\\cos x$",
+                        "B. $-\\sin x$",
+                        "C. $\\tan x$",
+                        "D. $-\\cos x$",
+                    ],
+                    correct: 0,
+                    type: "derivative",
+                },
+                {
+                    question: "**5**：$(\\cos x)’ =$",
+                    options: [
+                        "A. $\\sin x$",
+                        "B. $-\\sin x$",
+                        "C. $-\\cos x$",
+                        "D. $\\tan x$",
+                    ],
+                    correct: 1,
+                    type: "derivative",
+                },
+                {
+                    question: "**6**：$(e^{-x})’ =$",
+                    options: [
+                        "A. $-e^{-x}$",
+                        "B. $e^{-x}$",
+                        "C. $-e^x$",
+                        "D. $-xe^{-x}$",
+                    ],
+                    correct: 0,
+                    type: "derivative",
+                },
+                {
+                    question: "### 指数和对数函数的导数  \n**7**：$(e^x)’ =$",
+                    options: [
+                        "A. $xe^{x-1}$",
+                        "B. $e^x$",
+                        "C. $xe^x$",
+                        "D. $e^{x-1}$",
+                    ],
+                    correct: 1,
+                    type: "derivative",
+                },
+                {
+                    question: "**8**：$(a^x)’ =$",
+                    options: [
+                        "A. $a^x$",
+                        "B. $a^x \\cdot \\log a$",
+                        "C. $x \\cdot a^{x-1}$",
+                        "D. $a^x \\cdot \\ln a$",
+                    ],
+                    correct: 3,
+                    type: "derivative",
+                },
+                {
+                    question: "**9**：$(\\ln x)’ =$",
+                    options: [
+                        "A. $\\frac{1}{\\ln x}$",
+                        "B. $\\ln x$",
+                        "C. $\\frac{1}{x}$",
+                        "D. $x \\cdot \\ln x$",
+                    ],
+                    correct: 2,
+                    type: "derivative",
+                },
+                {
+                    question: "**10**：$(\\log_a x)’ =$",
+                    options: [
+                        "A. $\\frac{1}{x \\ln a}$",
+                        "B. $\\frac{\\ln x}{\\ln a}$",
+                        "C. $\\frac{1}{x \\lg a}$",
+                        "D. $\\frac{1}{\\ln x}$",
+                    ],
+                    correct: 0,
+                    type: "derivative",
+                },
+                {
+                    question:
+                        "### 导数的四则运算  \n**11**：$[f(x) + g(x)]’ =$",
+                    options: [
+                        "A. $\\frac{f'(x)}{g'(x)}$",
+                        "B. $f'(x) \\cdot g'(x)$",
+                        "C. $f'(x) - g'(x)$",
+                        "D. $f'(x) + g'(x)$",
+                    ],
+                    correct: 3,
+                    type: "derivative",
+                },
+                {
+                    question: "**12**：$[f(x) \\cdot g(x)]’ =$",
+                    options: [
+                        "A. $f'(x) \\cdot g'(x)$",
+                        "B. $f'(x) \\cdot g(x) + f(x) \\cdot g'(x)$",
+                        "C. $f'(x) \\cdot g(x) - f(x) \\cdot g'(x)$",
+                        "D. $f(x) \\cdot g(x) \\cdot [f'(x) + g'(x)]$",
+                    ],
+                    correct: 1,
+                    type: "derivative",
+                },
+                {
+                    question: "**13**：$\\left[\\frac{f(x)}{g(x)}\\right]’ =$",
+                    options: [
+                        "A. $\\frac{f'(x)}{g'(x)}$",
+                        "B. $\\frac{f'(x) - g'(x)}{g(x)}$",
+                        "C. $\\frac{f'(x) \\cdot g(x) + f(x) \\cdot g'(x)}{g^2(x)}$",
+                        "D. $\\frac{f'(x) \\cdot g(x) - f(x) \\cdot g'(x)}{g^2(x)}$",
+                    ],
+                    correct: 3,
+                    type: "derivative",
+                },
+                {
+                    question:
+                        "### 复合函数的导数  \n**14**：若 $y = f(g(x))$，则 $y’ =$",
+                    options: [
+                        "A. $f'(g(x)) + g'(x)$",
+                        "B. $f'(x) \\cdot g'(x)$",
+                        "C. $f'(g(x)) \\cdot g'(x)$",
+                        "D. $f(g'(x))$",
+                    ],
+                    correct: 2,
+                    type: "derivative",
+                },
+                {
+                    question: "**15**：$[\\sin(x^2)]’=$",
+                    options: [
+                        "A. $\\cos(x^2)$",
+                        "B. $2 \\sin(x) \\cdot \\cos(x)$",
+                        "C. $2x \\cdot \\cos(x^2)$",
+                        "D. $x^2 \\cdot \\cos(x^2)$",
+                    ],
+                    correct: 2,
+                    type: "derivative",
+                },
+                {
+                    question: "**16**：$[e^{\\sin x}]’ =$",
+                    options: [
+                        "A. $\\sin x \\cdot e^{\\sin x}$",
+                        "B. $e^{\\sin x} \\cdot \\sin x$",
+                        "C. $e^x \\cdot \\cos x$",
+                        "D. $e^{\\sin x} \\cdot \\cos x$",
+                    ],
+                    correct: 3,
+                    type: "derivative",
+                },
+                {
+                    question: "**17**：$(\\ln(x^2))’ =$",
+                    options: [
+                        "A. $\\frac{2}{x}$",
+                        "B. $\\frac{2}{x^2}$",
+                        "C. $\\frac{1}{x^2}$",
+                        "D. $2\\ln x$",
+                    ],
+                    correct: 0,
+                    type: "derivative",
+                },
+                {
+                    question: "**18**：$(e^{-x^2})’ =$",
+                    options: [
+                        "A. $e^{-x^2} \\cdot (-2x)$",
+                        "B. $-e^{-x^2}$",
+                        "C. $-2x^2e^{-x^2}$",
+                        "D. $-2xe^{-x^2}$",
+                    ],
+                    correct: 3,
+                    type: "derivative",
                 },
             ];
 
@@ -706,8 +1130,27 @@
 
                 currentTopic = topic;
 
+                // 根据主题筛选题目
+                let filteredQuestions = questionBank;
+                if (topic === "trigonometry") {
+                    // 筛选三角函数题目（没有type标记或type为trigonometry的题目）
+                    filteredQuestions = questionBank.filter(
+                        (q) => !q.type || q.type === "trigonometry"
+                    );
+                } else if (topic === "calculus") {
+                    // 筛选对数指数题目
+                    filteredQuestions = questionBank.filter(
+                        (q) => q.type === "logarithm"
+                    );
+                } else if (topic === "algebra") {
+                    // 筛选导数题目
+                    filteredQuestions = questionBank.filter(
+                        (q) => q.type === "derivative"
+                    );
+                }
+
                 // 初始化游戏
-                currentQuestions = getRandomQuestions(questionBank, 15);
+                currentQuestions = getRandomQuestions(filteredQuestions, 15);
                 currentQuestionIndex = 0;
                 userAnswers = Array(currentQuestions.length).fill(null);
                 timeLeft = 300;
@@ -1195,8 +1638,8 @@
         <label for="leaderboardTopic">选择知识点：</label>
         <select id="leaderboardTopic" onchange="updateLeaderboard()">
             <option value="trigonometry">三角函数</option>
-            <option value="calculus">微积分</option>
-            <option value="algebra">代数</option>
+            <option value="calculus">对数指数</option>
+            <option value="algebra">导数</option>
         </select>
     </div>
     <div id="leaderboardContainer">

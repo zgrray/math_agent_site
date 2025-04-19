@@ -28,10 +28,34 @@
                 flex-wrap: wrap;
                 margin: 10px 0;
                 min-height: 100px;
+                max-height: 400px; /* 添加最大高度 */
                 border: 1px dashed #ddd;
                 padding: 10px;
                 justify-content: center;
+                overflow-y: auto; /* 添加垂直滚动条 */
+                scrollbar-width: thin; /* Firefox */
+                scrollbar-color: #4682b4 #f0f0f0; /* Firefox */
             }
+
+            /* 为 Webkit 浏览器（Chrome、Safari等）自定义滚动条样式 */
+            .dice-container::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .dice-container::-webkit-scrollbar-track {
+                background: #f0f0f0;
+                border-radius: 4px;
+            }
+
+            .dice-container::-webkit-scrollbar-thumb {
+                background: #4682b4;
+                border-radius: 4px;
+            }
+
+            .dice-container::-webkit-scrollbar-thumb:hover {
+                background: #3a6d9a;
+            }
+
             /* 2D骰子样式 */
             .dice {
                 width: 40px;
@@ -216,6 +240,44 @@
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: center;
+            }
+            @media screen and (max-width: 768px) {
+                .container {
+                    width: 100%;
+                    margin: 10px 0;
+                }
+
+                .dice {
+                    width: 30px;
+                    height: 30px;
+                    margin: 5px;
+                }
+
+                .dot {
+                    width: 4px;
+                    height: 4px;
+                }
+
+                .dice-container {
+                    max-height: 300px;
+                    overflow-y: auto;
+                    padding: 5px;
+                }
+
+                textarea {
+                    height: 100px;
+                }
+
+                .stats-input div {
+                    width: 45%;
+                }
+
+                .button-group button {
+                    width: calc(50% - 10px);
+                    margin: 5px;
+                    font-size: 14px;
+                    padding: 6px 10px;
+                }
             }
         </style>
     </head>

@@ -534,6 +534,38 @@
                 },
             };
 
+            // 从本地存储加载数据
+            function loadFromLocalStorage() {
+                const savedData = localStorage.getItem("classData");
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        // 合并保存的数据到当前数据
+                        Object.keys(parsedData).forEach((key) => {
+                            if (classData[key]) {
+                                classData[key] = parsedData[key];
+                            }
+                        });
+                        console.log("从本地存储加载了班级数据");
+                    } catch (e) {
+                        console.error("解析本地存储数据时出错:", e);
+                    }
+                }
+            }
+
+            // 保存数据到本地存储
+            function saveToLocalStorage() {
+                try {
+                    localStorage.setItem(
+                        "classData",
+                        JSON.stringify(classData)
+                    );
+                    console.log("班级数据已保存到本地存储");
+                } catch (e) {
+                    console.error("保存数据到本地存储时出错:", e);
+                }
+            }
+
             let currentClass = "class1"; // 默认选择一班
             let names = classData[currentClass].students;
             let isRolling = false;
@@ -572,6 +604,8 @@
                     if (historyRecords.length > 10) historyRecords.pop();
                     // 同步更新当前班级的历史记录
                     classData[currentClass].history = historyRecords;
+                    // 保存到本地存储
+                    saveToLocalStorage();
                 }
                 isRolling = !isRolling;
             }
@@ -757,6 +791,9 @@
                         names = newNames;
                     }
 
+                    // 保存到本地存储
+                    saveToLocalStorage();
+
                     // 提示成功
                     alert(
                         `成功更新${classData[selectedClass].name}名单，共${newNames.length}名学生`
@@ -809,8 +846,68 @@
 
             // 页面加载时初始化
             document.addEventListener("DOMContentLoaded", function () {
+                // 从本地存储加载数据
+                loadFromLocalStorage();
+
+                // 更新当前班级的名单和历史记录
+                names = classData[currentClass].students;
+                historyRecords = classData[currentClass].history;
+
                 setMobileStyles();
             });
+
+            // 在点名记录更新时保存数据
+            function toggleRoll() {
+                const display = document.getElementById("display");
+                const startBtn = document.getElementById("startBtn");
+
+                if (!isRolling) {
+                    startRoll();
+                    startBtn.textContent = "暂停点名";
+                    display.classList.remove("highlight");
+                } else {
+                    stopRoll();
+                    startBtn.textContent = "开始点名";
+                    historyRecords.unshift(names[currentIndex]);
+                    if (historyRecords.length > 10) historyRecords.pop();
+                    // 同步更新当前班级的历史记录
+                    classData[currentClass].history = historyRecords;
+                    // 保存到本地存储
+                    saveToLocalStorage();
+                }
+                isRolling = !isRolling;
+            }
+
+            // 清除历史记录时也更新本地存储
+            function clearHistory() {
+                historyRecords = [];
+                classData[currentClass].history = [];
+                const historyContent =
+                    document.getElementById("history-content");
+                historyContent.innerHTML = "";
+
+                // 保存到本地存储
+                saveToLocalStorage();
+
+                // 如果历史记录面板可见，则更新内容
+                if (
+                    document
+                        .getElementById("history")
+                        .classList.contains("show")
+                ) {
+                    historyContent.innerHTML = "<strong>暂无点名记录</strong>";
+                }
+
+                // 清除页面中间显示的学生姓名，恢复初始状态
+                const display = document.getElementById("display");
+                display.textContent = "点击开始点名";
+                display.classList.remove("highlight");
+
+                // 如果正在点名，停止点名
+                if (isRolling) {
+                    toggleRoll();
+                }
+            }
 
             MathJax = {
                 tex: {
