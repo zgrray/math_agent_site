@@ -42,6 +42,18 @@ const TEACHING_RESOURCES = [
         description: "培养推理和空间几何能力的数独游戏",
         link: "skyscraper_sudoku.html",
     },
+    {
+        title: "居民月均用水量数据分析",
+        icon: "bi-water",
+        description: "人教A版必修第二册9.2.1总体取值规律的估计（第一课时）",
+        link: "water_usage_analysis.html",
+    },
+    {
+        title: "空气质量数据分析",
+        icon: "bi-cloud",
+        description: "人教A版必修第二册9.2.1总体取值规律的估计（第二课时）",
+        link: "air_quality_analysis.html",
+    },
     // 在此处添加新的教学资源
     // {
     //     title: "新资源标题",

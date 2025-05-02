@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空气质量数据分析</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f8fa;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            text-align: center;
+        }
+        .section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .content-box {
+            margin-top: 15px;
+        }
+        .show {
+            display: block;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.95em;
+            width: auto;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9f7fe;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .problem-content {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        /* 移除data-card样式，改为普通样式 */
+        #raw-data-container {
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 0 -10px;
+        }
+        .chart-col {
+            flex: 1;
+            min-width: 300px;
+            padding: 0 10px;
+            margin-bottom: 20px;
+        }
+        .chart-container-small {
+            width: 100%;
+            height: 400px;
+            margin: 10px 0;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .data-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 5px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .data-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        .data-item.active {
+            border: 2px solid #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+            transform: scale(1.05);
+        }
+        .data-item.excellent {
+            background-color: rgba(26, 152, 80, 1);
+            color: #ffffff;
+        }
+        .data-item.good {
+            background-color: rgba(145, 207, 96, 1);
+            color: #ffffff;
+        }
+        .data-item.light-pollution {
+            background-color: rgba(217, 239, 139, 1);
+            color: #ffffff;
+        }
+        .data-item.medium-pollution {
+            background-color: rgba(254, 224, 139, 1);
+            color: #ffffff;
+        }
+        .data-item.heavy-pollution {
+            background-color: rgba(252, 141, 89, 1);
+            color: #ffffff;
+        }
+        .data-item.severe-pollution {
+            background-color: rgba(215, 48, 39, 1);
+            color: #ffffff;
+        }
+        .data-month-container {
+            gap: 30px;
+        }
+        .data-controls {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .classify-btn {
+            background-color: #3498db;
+            margin-right: 10px;
+        }
+        .classify-btn:hover {
+            background-color: #2980b9;
+        }
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .chart-button {
+            background-color: #9b59b6;
+        }
+        .chart-button:hover {
+            background-color: #8e44ad;
+        }
+        .problem-buttons {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+        .problem-btn {
+            margin: 0 10px;
+            background-color: #3498db;
+            transition: all 0.3s ease;
+        }
+        .problem-btn:hover {
+            background-color: #2980b9;
+        }
+        .problem-btn.active {
+            background-color: #2c3e50;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .section-toggle {
+            margin-top: 15px;
+            background-color: #2ecc71;
+        }
+        .section-toggle:hover {
+            background-color: #27ae60;
+        }
+        .problem-detail {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .problem-detail.show {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6em;
+                margin-bottom: 20px;
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+            h3 {
+                font-size: 1.2em;
+            }
+            .problem-text {
+                font-size: 1.1em;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .data-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            }
+            .chart-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .chart-container {
+                height: 300px;
+            }
+            .charts-row {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+                padding: 12px 10px;
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            .container {
+                padding: 12px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            h2 {
+                font-size: 1.2em;
+            }
+            .problem-text {
+                font-size: 1em;
+            }
+            .data-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                gap: 5px;
+            }
+            .data-item {
+                padding: 6px 4px;
+                font-size: 0.9em;
+            }
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>空气质量数据分析</h1>
+    
+    <!-- 题目内容板块 -->
+    <div class="container">
+            <div id="problem" class="content-box show">
+                <div class="problem-content">
+                    <h3>已知某市2015年全年空气质量等级如表所示</h3>
+                    <table>
+                        <tr>
+                            <th>空气质量等级（空气质量指数（AQI））</th>
+                            <th>频数</th>
+                            <th>频率</th>
+                        </tr>
+                        <tr>
+                            <td>优（AQI≤50）</td>
+                            <td>83</td>
+                            <td>22.8%</td>
+                        </tr>
+                        <tr>
+                            <td>良（50＜AQI≤100）</td>
+                            <td>121</td>
+                            <td>33.2%</td>
+                        </tr>
+                        <tr>
+                            <td>轻度污染（100＜AQI≤150）</td>
+                            <td>68</td>
+                            <td>18.6%</td>
+                        </tr>
+                        <tr>
+                            <td>中度污染（150＜AQI≤200）</td>
+                            <td>49</td>
+                            <td>13.4%</td>
+                        </tr>
+                        <tr>
+                            <td>重度污染（200＜AQI≤300）</td>
+                            <td>30</td>
+                            <td>8.2%</td>
+                        </tr>
+                        <tr>
+                            <td>严重污染（AQI＞300）</td>
+                            <td>14</td>
+                            <td>3.8%</td>
+                        </tr>
+                        <tr>
+                            <td>合计</td>
+                            <td>365</td>
+                            <td>100%</td>
+                        </tr>
+                    </table>
+                    
+
+                </div>
+            </div>
+    </div>
+    
+    <!-- 原始数据版块 -->
+    <div class="container">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <button id="classify-btn" class="classify-btn" style="margin-right: 20px;">分类</button>
+                <div style="flex-grow: 1; text-align: center;">
+                    <h3 style="margin: 0;">2016年5月和6月空气质量指数原始数据</h3>
+                </div>
+                <div style="width: 70px;"></div> <!-- 右侧平衡空间，保持标题居中 -->
+            </div>
+            <div id="raw-data-container" style="margin-top: 10px;">
+                <div class="charts-row data-month-container">
+                    <div class="chart-col" style="flex: 1 1 48%;">
+                        <h4>5月空气质量指数数据</h4>
+                        <div id="may-data-grid" class="data-grid">
+                            <!-- 5月数据将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    <div class="chart-col" style="flex: 1 1 48%;">
+                        <h4>6月空气质量指数数据</h4>
+                        <div id="june-data-grid" class="data-grid">
+                            <!-- 6月数据将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 问题1内容 -->
+            <div style="text-align: left; margin: 15px 0;">
+                <p><strong>选择合适的统计图描述数据，并回答下列问题：</strong></p>
+                <p><strong>(1) 分析该市2016年6月的空气质量情况。</strong></p>
+                <p><strong>(2) 比较该市2016年5月和6月的空气质量，哪个月的空气质量较好？</strong></p>
+                <p><strong>(3) 比较该市2016年6月与该市2015年全年的空气质量，2016年6月的空气质量是否好于去年？</strong></p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="toggle-june-table-btn" class="chart-button" style="margin-right: 10px;">6月图表1</button>
+                <button id="toggle-june-bar-btn" class="chart-button" style="margin-right: 10px;">6月图表2</button>
+                <button id="toggle-june-pie-btn" class="chart-button" style="margin-right: 10px;">6月图表3</button>
+                <button id="toggle-june-line-btn" class="chart-button" style="margin-right: 10px;">6月图表4</button>
+                <button id="toggle-may-table-btn" class="chart-button" style="margin-right: 10px;">5月图表</button>
+                <button id="toggle-compare-btn" class="chart-button" style="margin-right: 10px;">5月和6月对比</button>
+                <button id="toggle-compare-2015-2016-btn" class="chart-button">15年和16年对比</button>
+            </div>
+    </div>
+    
+    <!-- 6月空气质量等级的频数与频率分布表 -->
+    <div class="container" id="june-table-container" style="display: none;">
+            <div id="june-data">
+                <h3>2016年6月不同空气质量等级的频数与频率分布表</h3>
+                <table id="june-distribution-table">
+                    <tr>
+                        <th rowspan="2">统计量</th>
+                        <th colspan="6">空气质量等级</th>
+                        <th rowspan="2">合计</th>
+                    </tr>
+                    <tr>
+                        <th>优</th>
+                        <th>良</th>
+                        <th>轻度污染</th>
+                        <th>中度污染</th>
+                        <th>重度污染</th>
+                        <th>严重污染</th>
+                    </tr>
+                    <tr>
+                        <td>天数</td>
+                        <td id="june-excellent">-</td>
+                        <td id="june-good">-</td>
+                        <td id="june-light">-</td>
+                        <td id="june-medium">-</td>
+                        <td id="june-heavy">-</td>
+                        <td id="june-severe">-</td>
+                        <td id="june-total">30</td>
+                    </tr>
+                    <tr>
+                        <td>频率</td>
+                        <td id="june-excellent-rate">-</td>
+                        <td id="june-good-rate">-</td>
+                        <td id="june-light-rate">-</td>
+                        <td id="june-medium-rate">-</td>
+                        <td id="june-heavy-rate">-</td>
+                        <td id="june-severe-rate">-</td>
+                        <td>100%</td>
+                    </tr>
+                </table>
+            </div>
+    </div>
+    
+    <!-- 空气质量等级频数分布条形图 -->
+    <div class="container" id="june-bar-container" style="display: none;">
+            <h3>2016年6月空气质量等级频数分布条形图</h3>
+            <div class="chart-container">
+                <div id="june-bar-chart" class="chart-container-small"></div>
+            </div>
+    </div>
+    
+    <!-- 空气质量等级频率分布扇形图 -->
+    <div class="container" id="june-pie-container" style="display: none;">
+            <h3>2016年6月空气质量等级频率分布扇形图</h3>
+            <div class="chart-container">
+                <div id="june-pie-chart" class="chart-container-small"></div>
+            </div>
+    </div>
+    
+    <!-- 空气质量指数折线图 -->
+    <div class="container" id="june-line-container" style="display: none;">
+            <h3>2016年6月空气质量指数折线图</h3>
+            <div class="chart-container">
+                <div id="june-line-chart" class="chart-container-small"></div>
+            </div>
+    </div>
+    
+    <!-- 5月空气质量等级的频数与频率分布表 -->
+    <div class="container" id="may-table-container" style="display: none;">
+            <div id="may-data">
+                <h3>2016年5月不同空气质量等级的频数与频率分布表</h3>
+                <table id="may-distribution-table">
+                    <tr>
+                        <th rowspan="2">统计量</th>
+                        <th colspan="6">空气质量等级</th>
+                        <th rowspan="2">合计</th>
+                    </tr>
+                    <tr>
+                        <th>优</th>
+                        <th>良</th>
+                        <th>轻度污染</th>
+                        <th>中度污染</th>
+                        <th>重度污染</th>
+                        <th>严重污染</th>
+                    </tr>
+                    <tr>
+                        <td>天数</td>
+                        <td id="may-excellent">-</td>
+                        <td id="may-good">-</td>
+                        <td id="may-light">-</td>
+                        <td id="may-medium">-</td>
+                        <td id="may-heavy">-</td>
+                        <td id="may-severe">-</td>
+                        <td id="may-total">31</td>
+                    </tr>
+                    <tr>
+                        <td>频率</td>
+                        <td id="may-excellent-rate">-</td>
+                        <td id="may-good-rate">-</td>
+                        <td id="may-light-rate">-</td>
+                        <td id="may-medium-rate">-</td>
+                        <td id="may-heavy-rate">-</td>
+                        <td id="may-severe-rate">-</td>
+                        <td>100%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 2016年5月和6月的空气质量比较 -->
+        <div class="section" id="compare-section" style="display: none;">
+            <h3>2016年5月和6月的空气质量比较</h3>
+            <div class="charts-row">
+                <div class="chart-col">
+                    <h4>不同空气质量等级的天数比较</h4>
+                    <div id="compare-bar-days-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2015年全年与2016年6月空气质量比较 -->
+        <div class="section" id="compare-2015-2016-section" style="display: none;">
+            <h3>2015年全年与2016年6月空气质量比较</h3>
+            <div class="charts-row">
+                <div class="chart-col">
+                    <h4>不同空气质量等级的频率分布比较</h4>
+                    <div id="compare-bar-rate-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入ECharts库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- 内联JavaScript代码 -->
+    <script>
+    // 问题按钮切换功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const problemBtns = document.querySelectorAll('.problem-btn');
+        const problemContents = document.querySelectorAll('.problem-detail');
+        
+        problemBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除所有按钮的active类
+                problemBtns.forEach(b => b.classList.remove('active'));
+                // 为当前点击的按钮添加active类
+                this.classList.add('active');
+                
+                // 隐藏所有问题内容
+                problemContents.forEach(content => content.classList.remove('show'));
+                
+                // 显示对应的问题内容
+                const problemId = this.id.replace('btn-', '');
+                document.getElementById(problemId + '-content').classList.add('show');
+            });
+        });
+    });
+    
+
+
+    // 切换激活状态的函数（已修改，移除卡片相关逻辑）
+    function toggleActive(id) {
+        const element = document.getElementById(id);
+        if (element.classList.contains('active')) {
+            element.classList.remove('active');
+        } else {
+            // 移除其他元素的激活状态
+            document.querySelectorAll('.active').forEach(item => {
+                if (item.id !== id) {
+                    item.classList.remove('active');
+                }
+            });
+            element.classList.add('active');
+        }
+    }
+
+    // 空气质量等级的定义
+    const airQualityLevels = [
+        { name: '优', range: [0, 50] },
+        { name: '良', range: [51, 100] },
+        { name: '轻度污染', range: [101, 150] },
+        { name: '中度污染', range: [151, 200] },
+        { name: '重度污染', range: [201, 300] },
+        { name: '严重污染', range: [301, Infinity] }
+    ];
+
+    // 原始数据
+    const mayData = [240, 80, 56, 53, 92, 126, 45, 87, 56, 60, 191, 62, 55, 58, 56, 53, 89, 90, 125, 124, 103, 81, 89, 44, 34, 53, 79, 81, 62, 116, 88];
+    const juneData = [63, 92, 110, 122, 102, 116, 81, 163, 158, 76, 33, 102, 65, 53, 38, 55, 52, 76, 99, 127, 120, 80, 108, 33, 35, 73, 82, 90, 146, 95];
+
+    // 计算空气质量等级的频数和频率
+    function calculateDistribution(data) {
+        const counts = [0, 0, 0, 0, 0, 0];
+        
+        data.forEach(value => {
+            for (let i = 0; i < airQualityLevels.length; i++) {
+                const level = airQualityLevels[i];
+                if (value >= level.range[0] && value <= level.range[1]) {
+                    counts[i]++;
+                    break;
+                }
+            }
+        });
+        
+        const total = data.length;
+        const rates = counts.map(count => (count / total * 100).toFixed(2) + '%');
+        
+        return { counts, rates, total };
+    }
+
+    // 计算5月和6月的分布
+    const mayDistribution = calculateDistribution(mayData);
+    const juneDistribution = calculateDistribution(juneData);
+
+    // 获取空气质量等级的函数
+    function getAirQualityLevel(value) {
+        for (let i = 0; i < airQualityLevels.length; i++) {
+            const level = airQualityLevels[i];
+            if (value >= level.range[0] && value <= level.range[1]) {
+                return {
+                    name: level.name,
+                    index: i
+                };
+            }
+        }
+        return { name: '未知', index: -1 };
+    }
+
+    // 获取空气质量等级对应的CSS类名
+    function getAirQualityClass(index) {
+        const classNames = [
+            'excellent',
+            'good',
+            'light-pollution',
+            'medium-pollution',
+            'heavy-pollution',
+            'severe-pollution'
+        ];
+        return index >= 0 && index < classNames.length ? classNames[index] : '';
+    }
+
+    // 创建数据卡片的函数
+    function createDataItems(data, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        data.forEach((value, index) => {
+            const dataItem = document.createElement('div');
+            dataItem.className = 'data-item';
+            dataItem.textContent = value;
+            dataItem.dataset.index = index;
+            dataItem.dataset.value = value;
+            
+            // 计算空气质量等级，但不立即添加类名
+            // 而是存储在dataset中，以便后续使用
+            const level = getAirQualityLevel(value);
+            dataItem.dataset.qualityLevel = level.index;
+            dataItem.dataset.qualityClass = getAirQualityClass(level.index);
+            
+            // 添加点击事件
+            dataItem.addEventListener('click', function() {
+                // 移除所有数据项的active类
+                document.querySelectorAll('.data-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                // 为当前点击的数据项添加active类
+                this.classList.add('active');
+            });
+            
+            container.appendChild(dataItem);
+        });
+    }
+
+    // 切换数据卡片的分类显示
+    function toggleClassification() {
+        const classifyBtn = document.getElementById('classify-btn');
+        const isClassified = classifyBtn.classList.toggle('active');
+        
+        // 获取所有数据项
+        const dataItems = document.querySelectorAll('.data-item');
+        
+        if (isClassified) {
+            // 如果激活分类，则根据空气质量等级添加对应的类名
+            classifyBtn.textContent = '取消分类';
+            dataItems.forEach(item => {
+                const qualityClass = item.dataset.qualityClass;
+                if (qualityClass) {
+                    item.classList.add(qualityClass);
+                }
+            });
+        } else {
+            // 如果取消分类，则移除所有空气质量等级的类名
+            classifyBtn.textContent = '分类';
+            dataItems.forEach(item => {
+                const qualityClass = item.dataset.qualityClass;
+                if (qualityClass) {
+                    item.classList.remove(qualityClass);
+                }
+            });
+        }
+    }
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+        // 创建5月和6月的数据卡片
+        createDataItems(mayData, 'may-data-grid');
+        createDataItems(juneData, 'june-data-grid');
+        
+        // 为分类按钮添加点击事件
+        const classifyBtn = document.getElementById('classify-btn');
+        if (classifyBtn) {
+            classifyBtn.addEventListener('click', toggleClassification);
+        }
+        
+        // 为6月图表1按钮添加点击事件
+        const toggleJuneTableBtn = document.getElementById('toggle-june-table-btn');
+        if (toggleJuneTableBtn) {
+            toggleJuneTableBtn.addEventListener('click', toggleJuneTable);
+        }
+        
+        // 为6月图表2按钮添加点击事件
+        const toggleJuneBarBtn = document.getElementById('toggle-june-bar-btn');
+        if (toggleJuneBarBtn) {
+            toggleJuneBarBtn.addEventListener('click', toggleJuneBarChart);
+        }
+        
+        // 为6月图表3按钮添加点击事件
+        const toggleJunePieBtn = document.getElementById('toggle-june-pie-btn');
+        if (toggleJunePieBtn) {
+            toggleJunePieBtn.addEventListener('click', toggleJunePieChart);
+        }
+        
+        // 为6月图表4按钮添加点击事件
+        const toggleJuneLineBtn = document.getElementById('toggle-june-line-btn');
+        if (toggleJuneLineBtn) {
+            toggleJuneLineBtn.addEventListener('click', toggleJuneLineChart);
+        }
+        
+        // 为5月图表按钮添加点击事件
+        const toggleMayTableBtn = document.getElementById('toggle-may-table-btn');
+        if (toggleMayTableBtn) {
+            toggleMayTableBtn.addEventListener('click', toggleMayTable);
+        }
+        
+        // 为5月和6月对比按钮添加点击事件
+        const toggleCompareBtn = document.getElementById('toggle-compare-btn');
+        if (toggleCompareBtn) {
+            toggleCompareBtn.addEventListener('click', toggleCompareSection);
+        }
+
+            // 添加15年和16年对比按钮的点击事件处理
+        const toggleCompareRateBtn = document.getElementById('toggle-compare-2015-2016-btn');
+        if (toggleCompareRateBtn) {
+            toggleCompareRateBtn.addEventListener('click', toggleCompareRateSection);
+        }
+    
+
+        
+        // 填充6月表格数据
+        document.getElementById('june-excellent').textContent = juneDistribution.counts[0];
+        document.getElementById('june-good').textContent = juneDistribution.counts[1];
+        document.getElementById('june-light').textContent = juneDistribution.counts[2];
+        document.getElementById('june-medium').textContent = juneDistribution.counts[3];
+        document.getElementById('june-heavy').textContent = juneDistribution.counts[4];
+        document.getElementById('june-severe').textContent = juneDistribution.counts[5];
+        document.getElementById('june-total').textContent = juneDistribution.total;
+        
+        document.getElementById('june-excellent-rate').textContent = juneDistribution.rates[0];
+        document.getElementById('june-good-rate').textContent = juneDistribution.rates[1];
+        document.getElementById('june-light-rate').textContent = juneDistribution.rates[2];
+        document.getElementById('june-medium-rate').textContent = juneDistribution.rates[3];
+        document.getElementById('june-heavy-rate').textContent = juneDistribution.rates[4];
+        document.getElementById('june-severe-rate').textContent = juneDistribution.rates[5];
+        
+        // 填充5月表格数据
+        document.getElementById('may-excellent').textContent = mayDistribution.counts[0];
+        document.getElementById('may-good').textContent = mayDistribution.counts[1];
+        document.getElementById('may-light').textContent = mayDistribution.counts[2];
+        document.getElementById('may-medium').textContent = mayDistribution.counts[3];
+        document.getElementById('may-heavy').textContent = mayDistribution.counts[4];
+        document.getElementById('may-severe').textContent = mayDistribution.counts[5];
+        document.getElementById('may-total').textContent = mayDistribution.total;
+        
+        document.getElementById('may-excellent-rate').textContent = mayDistribution.rates[0];
+        document.getElementById('may-good-rate').textContent = mayDistribution.rates[1];
+        document.getElementById('may-light-rate').textContent = mayDistribution.rates[2];
+        document.getElementById('may-medium-rate').textContent = mayDistribution.rates[3];
+        document.getElementById('may-heavy-rate').textContent = mayDistribution.rates[4];
+        document.getElementById('may-severe-rate').textContent = mayDistribution.rates[5];
+        
+        // 初始化所有图表
+        initJuneBarChart();
+        initJunePieChart();
+        initJuneLineChart();
+        initCompareBarDaysChart();
+        initCompareBarRateChart();
+    });
+
+    // 初始化6月空气质量等级的频数分布条形图
+    function initJuneBarChart() {
+        const chartDom = document.getElementById('june-bar-chart');
+        const myChart = echarts.init(chartDom, null, {
+            renderer: 'canvas',
+            width: 'auto',
+            height: 'auto'
+        });
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['优', '良', '轻度污染', '中度污染', '重度污染', '严重污染'],
+                axisTick: {
+                    alignWithLabel: true
+                },
+                axisLabel: {
+                    interval: 0,
+                    rotate: 0,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '天数'
+            },
+            series: [
+                {
+                    name: '天数',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: juneDistribution.counts,
+                    itemStyle: {
+                        color: function(params) {
+                            const colors = ['#1a9850', '#91cf60', '#d9ef8b', '#fee08b', '#fc8d59', '#d73027'];
+                            return colors[params.dataIndex];
+                        }
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        
+        // 保存图表实例到window对象，方便后续访问
+        window.juneBarChart = myChart;
+        
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化6月空气质量等级的扇形图
+    function initJunePieChart() {
+        const chartDom = document.getElementById('june-pie-chart');
+        const myChart = echarts.init(chartDom);
+        
+        // 保存图表实例到window对象，方便后续访问
+        window.junePieChart = myChart;
+        
+        const option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                right: 10,
+                top: 'center',
+                itemGap: 20,
+                data: ['优', '良', '轻度污染', '中度污染', '重度污染', '严重污染']
+            },
+            series: [
+                {
+                    name: '空气质量等级',
+                    type: 'pie',
+                    radius: '95%',  // 增大扇形图尺寸
+                    center: ['50%', '50%'],   // 将图表向上移动，为底部图例腾出空间
+                    avoidLabelOverlap: true,  // 开启标签重叠避免
+                    label: {
+                        show: true,
+                        position: 'inside',  // 将标签放在内部
+                        formatter: '{d}%',  // 只显示百分比
+                        fontSize: 15,
+                        fontWeight: 'bold',
+                        color: '#fff',  // 白色文字更容易在扇形内部看清
+                        textBorderColor: '#000',  // 黑色描边
+                        textBorderWidth: 1.5  // 描边宽度
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '14',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: true,
+                        length: 10,  // 第一段线长
+                        length2: 10  // 第二段线长
+                    },
+                    data: [
+                        { value: juneDistribution.counts[0], name: '优', itemStyle: { color: '#1a9850' } },
+                        { value: juneDistribution.counts[1], name: '良', itemStyle: { color: '#91cf60' } },
+                        { value: juneDistribution.counts[2], name: '轻度污染', itemStyle: { color: '#d9ef8b' } },
+                        { value: juneDistribution.counts[3], name: '中度污染', itemStyle: { color: '#fee08b' } },
+                        { value: juneDistribution.counts[4], name: '重度污染', itemStyle: { color: '#fc8d59' } },
+                        { value: juneDistribution.counts[5], name: '严重污染', itemStyle: { color: '#d73027' } }
+                    ]
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+
+        window.junePieChart = myChart;
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化6月空气质量指数折线图
+    function initJuneLineChart() {
+        const chartDom = document.getElementById('june-line-chart');
+        const myChart = echarts.init(chartDom);
+        
+        // 生成日期数组
+        const dates = [];
+        for (let i = 1; i <= juneData.length; i++) {
+            dates.push('2016/6/' + i);
+        }
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: dates,
+                name: '日期'
+            },
+            yAxis: {
+                type: 'value',
+                name: '空气质量指数'
+            },
+            series: [
+                {
+                    data: juneData,
+                    type: 'line',
+                    smooth: false,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    lineStyle: {
+                        width: 3,
+                        color: '#5470c6'
+                    },
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                }
+            ],
+            visualMap: {
+                show: false,
+                pieces: [
+                    {gte: 0, lt: 51, color: '#1a9850'},
+                    {gte: 51, lt: 101, color: '#91cf60'},
+                    {gte: 101, lt: 151, color: '#d9ef8b'},
+                    {gte: 151, lt: 201, color: '#fee08b'},
+                    {gte: 201, lt: 301, color: '#fc8d59'},
+                    {gte: 301, color: '#d73027'}
+                ],
+                outOfRange: {
+                    color: '#999'
+                }
+            }
+        };
+        
+        myChart.setOption(option);
+        window.juneLineChart = myChart;
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化两个月空气质量比较的复合条形图（天数）
+    function initCompareBarDaysChart() {
+        const chartDom = document.getElementById('compare-bar-days-chart');
+        const myChart = echarts.init(chartDom);
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['5月', '6月']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '10%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['优', '良', '轻度污染', '中度污染', '重度污染', '严重污染'],
+                axisLabel: {
+                    interval: 0,
+                    rotate: 30,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '天数'
+            },
+            series: [
+                {
+                    name: '5月',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: mayDistribution.counts,
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                },
+                {
+                    name: '6月',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: juneDistribution.counts,
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        window.compareBarDaysChart = myChart;
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+    
+    // 2015年全年与2016年6月空气质量比较图表函数已移除
+
+    // 初始化2015年全年与2016年6月空气质量等级的频率分布条形图
+    function initCompareBarRateChart() {
+        const chartDom = document.getElementById('compare-bar-rate-chart');
+        const myChart = echarts.init(chartDom);
+        
+        // 2015年全年空气质量等级频率数据（从表9.2-2中获取）
+        const year2015Rates = [22.8, 33.2, 18.6, 13.4, 8.2, 3.8];
+        
+        // 将6月百分比字符串转换为数值
+        const juneRates = juneDistribution.rates.map(rate => parseFloat(rate));
+        
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: function(params) {
+                    return params[0].name + '<br/>' + 
+                           params[0].seriesName + ': ' + params[0].value.toFixed(2) + '%<br/>' + 
+                           params[1].seriesName + ': ' + params[1].value.toFixed(2) + '%';
+                }
+            },
+            legend: {
+                data: ['2015年全年', '2016年6月']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '10%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['优', '良', '轻度污染', '中度污染', '重度污染', '严重污染'],
+                axisLabel: {
+                    interval: 0,
+                    rotate: 30,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '频率(%)',
+                axisLabel: {
+                    formatter: '{value}%'
+                }
+            },
+            series: [
+                {
+                    name: '2015年全年',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: year2015Rates,
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                },
+                {
+                    name: '2016年6月',
+                    type: 'bar',
+                    barWidth: '30%',
+                    data: juneRates,
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+        window.compareBarRateChart = myChart;
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+    
+    // 切换图表显示/隐藏的函数
+    function toggleChart(chartId) {
+        const chartElement = document.getElementById(chartId);
+        if (chartElement.style.display === 'none') {
+            chartElement.style.display = 'block';
+        } else {
+            chartElement.style.display = 'none';
+        }
+    }
+    
+    // 滚动到下一个板块的函数
+    function scrollToNextSection(button) {
+        const currentSection = button.closest('.section');
+        const nextSection = currentSection.nextElementSibling;
+        
+        if (nextSection) {
+            nextSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+    
+    // 切换6月表格显示/隐藏的函数
+    function toggleJuneTable() {
+        const tableContainer = document.getElementById('june-table-container');
+        if (tableContainer.style.display === 'none') {
+            tableContainer.style.display = 'block';
+        } else {
+            tableContainer.style.display = 'none';
+        }
+    }
+    
+    // 切换6月条形图显示/隐藏的函数
+    function toggleJuneBarChart() {
+        const barChartContainer = document.getElementById('june-bar-container');
+        if (barChartContainer.style.display === 'none') {
+            barChartContainer.style.display = 'block';
+            // 使用已保存的图表实例直接调整大小
+            if (window.juneBarChart) {
+                window.juneBarChart.resize();
+            }
+        } else {
+            barChartContainer.style.display = 'none';
+        }
+    }
+    
+    // 切换6月扇形图显示/隐藏的函数
+    function toggleJunePieChart() {
+        const pieChartContainer = document.getElementById('june-pie-container');
+        if (pieChartContainer.style.display === 'none') {
+            pieChartContainer.style.display = 'block';
+            // 使用已保存的图表实例直接调整大小
+            if (window.junePieChart) {
+                window.junePieChart.resize();
+            }
+        } else {
+            pieChartContainer.style.display = 'none';
+        }
+    }
+    
+    // 切换5月表格显示/隐藏的函数
+    function toggleMayTable() {
+        const tableContainer = document.getElementById('may-table-container');
+        if (tableContainer.style.display === 'none') {
+            tableContainer.style.display = 'block';
+        } else {
+            tableContainer.style.display = 'none';
+        }
+    }
+    
+    // 切换5月和6月比较显示/隐藏的函数
+    function toggleCompareSection() {
+        const compareSection = document.getElementById('compare-section');
+        if (compareSection.style.display === 'none') {
+            compareSection.style.display = 'block';
+            // 如果有图表，需要调整大小
+            if (window.compareBarDaysChart) {
+                window.compareBarDaysChart.resize();
+            }
+        } else {
+            compareSection.style.display = 'none';
+        }
+    }
+
+    function toggleCompareRateSection() {
+        const compareSectionR = document.getElementById('compare-2015-2016-section');
+        if (compareSectionR.style.display === 'none') {
+            compareSectionR.style.display = 'block';
+            // 如果有图表，需要调整大小
+            if (window.compareBarRateChart) {
+                window.compareBarRateChart.resize();
+            }
+        } else {
+            compareSectionR.style.display = 'none';
+        }
+    }
+    
+    // 切换6月折线图显示/隐藏的函数
+    function toggleJuneLineChart() {
+        const lineChartContainer = document.getElementById('june-line-container');
+        if (lineChartContainer.style.display === 'none') {
+            lineChartContainer.style.display = 'block';
+            if (window.juneLineChart) {
+                window.juneLineChart.resize();
+            }
+        } else {
+            lineChartContainer.style.display = 'none';
+        }
+    }
+    </script>
+</body>
+</html>

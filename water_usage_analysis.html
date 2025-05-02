@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>总体取值规律估计——居民用水量数据分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f8fa;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .problem-description {
+            background-color: #f0f7fc;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        .problem-text {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .problem-text:first-child {
+            display: block;
+        }
+        .section-toggle {
+            margin-top: 15px;
+            background-color: #2ecc71;
+        }
+        .section-toggle:hover {
+            background-color: #27ae60;
+        }
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .chart-button {
+            background-color: #9b59b6;
+        }
+        .chart-button:hover {
+            background-color: #8e44ad;
+        }
+        .chart-comparison {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            overflow-x: auto; /* 添加水平滚动以适应小屏幕 */
+        }
+        .saved-chart {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            overflow-x: auto; /* 添加水平滚动以适应小屏幕 */
+        }
+        .remove-chart {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .remove-chart:hover {
+            background-color: #c0392b;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+        }
+        .data-item {
+            background-color: #e8f4f8;
+            padding: 8px 6px;
+            border-radius: 4px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+        .data-item:hover {
+            background-color: #d0e8f2;
+            transform: scale(1.05);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            align-items: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.95em;
+            width: auto;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .slider-container {
+            flex: 1;
+            min-width: 200px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .result-box {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none; /* 默认隐藏统计量文本框 */
+        }
+        .result-item {
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .frequency-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            overflow-x: auto; /* 添加水平滚动以适应小屏幕 */
+        }
+        .frequency-table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        .frequency-table th, .frequency-table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .frequency-table th {
+            background-color: #3498db;
+            color: white;
+        }
+        .frequency-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6em;
+                margin-bottom: 20px;
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+            h3 {
+                font-size: 1.2em;
+            }
+            .problem-text {
+                font-size: 1.1em;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .data-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            }
+            .chart-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .chart-container {
+                height: 300px;
+            }
+            .radio-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .frequency-table {
+                font-size: 0.9em;
+            }
+            .frequency-table th, .frequency-table td {
+                padding: 6px 8px;
+            }
+            button {
+                width: 100%;
+                padding: 12px 10px;
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            .container {
+                padding: 12px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            h2 {
+                font-size: 1.2em;
+            }
+            .problem-text {
+                font-size: 1em;
+            }
+            .data-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                gap: 5px;
+            }
+            .data-item {
+                padding: 6px 4px;
+                font-size: 0.9em;
+            }
+            .chart-container {
+                height: 250px;
+            }
+            .frequency-table {
+                font-size: 0.8em;
+            }
+            .frequency-table th, .frequency-table td {
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>总体取值规律估计——居民用水量数据分析</h1>
+    
+    <div class="container">
+        <h2>问题描述</h2>
+        <div class="problem-description">
+            <p class="problem-text" style="font-size: 1.2em;">问题1：我国是世界上严重缺水的国家之一，城市缺水问题较为突出。某市政府为了减少水资源的浪费，计划对居民生活用水费用实施阶梯式水价制度，即确定一户居民月均用水量标准α，用水量不超过α的部分按平价收费，超出α的部分按议价收费。如果希望确定一个比较合理的标准，以使大部分居民用户的水费支出不受影响，你认为需要做哪些工作？</p>
+            <p class="problem-text" style="font-size: 1.2em;">每户居民月均用水量标准如果定得太低，会影响很多居民的日常生活；如果标准太高，则不利于节水。为了确定一个较为合理的用水标准，必须了解在全市所有居民用户中，月用水量在不同范围内的居民用户所占的比例情况。</p>
+            <p class="problem-text" style="font-size: 1.2em;">如果经费、时间等条件允许，我们可以通过全面调查获得过去一年全市所有居民用户的月均用水量数据，进而得到月均用水量在不同范围内的居民用户所占的比例。由于全市居民用户很多，通常采用抽样调查的方式，通过分析样本观测数据，来估计全市居民用户月均用水量的分布情况。</p>
+            <p class="problem-text" style="font-size: 1.2em;">在这个问题中，总体是该市的全体居民用户，个体是每户居民用户，调查的变量是居民用户的月均用水量。</p>
+            <button id="next-paragraph" class="section-toggle">显示下一段</button>
+            <button id="toggle-sample-data" class="section-toggle">显示抽样数据</button>
+        </div>
+    </div>
+
+    <div class="container" id="sample-data-container" style="display: none;">
+        <h2>抽样数据</h2>
+        <p>假设通过简单随机抽样，获得了100户居民用户的月均用水量数据（单位：t）：</p>
+        <div class="data-display-container" style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div class="data-grid" id="data-grid" style="flex: 3; min-width: 250px;"></div>
+            <div style="width: 150px; min-width: 150px;">
+                <div class="controls" style="flex-direction: column; align-items: stretch;">
+                    <button id="highlight-max" style="padding: 5px 6px; font-size: 0.95em; width: auto;">最大值</button>
+                    <button id="highlight-min" style="padding: 5px 6px; font-size: 0.95em; width: auto;">最小值</button>
+                    <button id="calculate-stats" style="padding: 5px 6px; font-size: 0.95em; width: auto;">计算统计量</button>
+                </div>
+                <div id="stats-container"></div>
+            </div>
+        </div>
+        <button id="toggle-frequency-analysis" class="section-toggle">显示频率分布分析</button>
+    </div>
+
+    <div class="container" id="frequency-analysis-container" style="display: none;">
+        <h2>频率分布分析</h2>
+        
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" name="group-method" value="interval" checked>
+                按组距分组
+            </label>
+            <label class="radio-label">
+                <input type="radio" name="group-method" value="count">
+                按组数分组
+            </label>
+        </div>
+        
+        <div id="interval-controls" class="controls">
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>组距：</span>
+                    <span id="interval-value">3</span>
+                </div>
+                <input type="range" id="interval-slider" min="1" max="10" value="3" step="0.5">
+            </div>
+            <label class="checkbox-label" style="display: flex; align-items: center; margin-left: 15px;">
+                <input type="checkbox" id="show-grouping-checkbox">
+                <span style="margin-left: 5px;">数据分组</span>
+            </label>
+            <!-- 移除此处的按钮，使用下方chart-controls中的按钮 -->
+        </div>
+        
+        <div id="count-controls" class="controls" style="display: none;">
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>组数：</span>
+                    <span id="group-count-value">9</span>
+                </div>
+                <input type="range" id="group-count-slider" min="3" max="27" value="9" step="1">
+            </div>
+            <label class="checkbox-label" style="display: flex; align-items: center; margin-left: 15px;">
+                <input type="checkbox" id="show-grouping-checkbox-count">
+                <span style="margin-left: 5px;">数据分组</span>
+            </label>
+        </div>
+        
+        <div class="chart-controls">
+            <button id="show-frequency-table" class="chart-button">频率分布表</button>
+            <button id="show-histogram" class="chart-button">频率分布直方图</button>
+            <button id="toggle-frequency-count" class="chart-button">频数分布直方图</button>
+        </div>
+        
+        <div id="frequency-table-container" style="display: none;">
+            <h3>频率分布表</h3>
+            <div class="frequency-table-wrapper">
+                <table class="frequency-table" id="frequency-table">
+                    <thead>
+                        <tr>
+                            <th>组别</th>
+                            <th>区间</th>
+                            <th>频数</th>
+                            <th>频率</th>
+                            <th>累计频率</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">频率分布直方图</h3>
+            <button id="save-chart" class="section-toggle">保存当前图像</button>
+        </div>
+        <div class="chart-container" style="display: none; position: relative;">
+            <canvas id="histogram"></canvas>
+        </div>
+        
+        <div class="chart-container" id="frequency-count-chart-container" style="display: none; margin-top: 10px;">
+            <canvas id="frequency-count-histogram"></canvas>
+        </div>
+        
+        <div id="chart-comparison" class="chart-comparison" style="display: none;">
+            <h3>图表对比</h3>
+            <div id="saved-charts-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后初始化所有功能
+        document.addEventListener('DOMContentLoaded', function() {
+            initProblemDescription();
+            initSectionToggles();
+            initChartControls();
+            initChartComparison();
+        });
+        
+        // 初始化问题描述分段显示功能
+        function initProblemDescription() {
+            const paragraphs = document.querySelectorAll('.problem-text');
+            const nextButton = document.getElementById('next-paragraph');
+            let currentIndex = 0;
+            
+            nextButton.addEventListener('click', function() {
+                currentIndex++;
+                if (currentIndex < paragraphs.length) {
+                    paragraphs[currentIndex].style.display = 'block';
+                }
+                
+                if (currentIndex >= paragraphs.length - 1) {
+                    nextButton.style.display = 'none';
+                }
+            });
+        }
+        
+        // 初始化板块折叠/展开功能
+        function initSectionToggles() {
+            // 抽样数据板块切换
+            const toggleSampleDataBtn = document.getElementById('toggle-sample-data');
+            const sampleDataContainer = document.getElementById('sample-data-container');
+            
+            toggleSampleDataBtn.addEventListener('click', function() {
+                const isVisible = sampleDataContainer.style.display !== 'none';
+                sampleDataContainer.style.display = isVisible ? 'none' : 'block';
+                toggleSampleDataBtn.textContent = isVisible ? '显示抽样数据' : '折叠抽样数据';
+            });
+            
+            // 频率分布分析板块切换
+            const toggleFrequencyBtn = document.getElementById('toggle-frequency-analysis');
+            const frequencyContainer = document.getElementById('frequency-analysis-container');
+            
+            toggleFrequencyBtn.addEventListener('click', function() {
+                const isVisible = frequencyContainer.style.display !== 'none';
+                frequencyContainer.style.display = isVisible ? 'none' : 'block';
+                toggleFrequencyBtn.textContent = isVisible ? '显示频率分布分析' : '折叠频率分布分析';
+            });
+        }
+        
+        // 初始化图表控制功能
+        function initChartControls() {
+            const showTableBtn = document.getElementById('show-frequency-table');
+            const showHistogramBtn = document.getElementById('show-histogram');
+            const tableContainer = document.getElementById('frequency-table-container');
+            const chartContainer = document.querySelector('.chart-container');
+            
+            showTableBtn.addEventListener('click', function() {
+                const isVisible = tableContainer.style.display !== 'none';
+                tableContainer.style.display = isVisible ? 'none' : 'block';
+                showTableBtn.textContent = isVisible ? '频率分布表' : '隐藏频率分布表';
+            });
+            
+            showHistogramBtn.addEventListener('click', function() {
+                const isVisible = chartContainer.style.display !== 'none';
+                chartContainer.style.display = isVisible ? 'none' : 'block';
+                showHistogramBtn.textContent = isVisible ? '频率分布直方图' : '隐藏频率分布直方图';
+                
+                // 如果显示图表，确保图表正确调整大小
+                if (!isVisible && Chart.getChart('histogram')) {
+                    setTimeout(() => {
+                        Chart.getChart('histogram').resize();
+                    }, 50);
+                }
+            });
+            
+            // 监听窗口大小变化，调整图表大小
+            window.addEventListener('resize', function() {
+                const histogramChart = Chart.getChart('histogram');
+                const frequencyCountChart = Chart.getChart('frequency-count-histogram');
+                
+                if (histogramChart) {
+                    histogramChart.resize();
+                }
+                
+                if (frequencyCountChart) {
+                    frequencyCountChart.resize();
+                }
+                
+                // 调整保存的图表大小
+                const savedCharts = document.querySelectorAll('#saved-charts-container canvas');
+                savedCharts.forEach(canvas => {
+                    const chart = Chart.getChart(canvas);
+                    if (chart) {
+                        chart.resize();
+                    }
+                });
+            });
+        }
+        
+        // 初始化图表对比功能
+        function initChartComparison() {
+            const saveChartBtn = document.getElementById('save-chart');
+            const chartComparisonContainer = document.getElementById('chart-comparison');
+            const savedChartsContainer = document.getElementById('saved-charts-container');
+            let chartCounter = 0;
+            
+            saveChartBtn.addEventListener('click', function() {
+                // 显示图表对比板块
+                chartComparisonContainer.style.display = 'block';
+                
+                // 获取当前直方图
+                const currentCanvas = document.getElementById('histogram');
+                
+                // 创建新的图表容器
+                const savedChartContainer = document.createElement('div');
+                savedChartContainer.className = 'saved-chart';
+                savedChartContainer.id = 'saved-chart-' + chartCounter;
+                
+                // 创建新的画布
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = 'saved-histogram-' + chartCounter;
+                savedChartContainer.appendChild(newCanvas);
+                
+                // 创建删除按钮
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-chart';
+                removeBtn.textContent = '清除图像';
+                removeBtn.dataset.chartId = chartCounter;
+                removeBtn.addEventListener('click', function() {
+                    const chartId = this.dataset.chartId;
+                    const chartToRemove = document.getElementById('saved-chart-' + chartId);
+                    if (chartToRemove) {
+                        chartToRemove.remove();
+                    }
+                    
+                    // 如果没有保存的图表了，隐藏对比板块
+                    if (savedChartsContainer.children.length === 0) {
+                        chartComparisonContainer.style.display = 'none';
+                    }
+                });
+                savedChartContainer.appendChild(removeBtn);
+                
+                // 添加到保存的图表容器
+                savedChartsContainer.appendChild(savedChartContainer);
+                
+                // 复制当前直方图到新画布
+                const newCtx = newCanvas.getContext('2d');
+                const currentChart = Chart.getChart(currentCanvas);
+                
+                if (currentChart) {
+                    // 保存当前图表的配置和数据
+                    const chartConfig = currentChart.config;
+                    
+                    // 创建新的图表实例，确保完全复制原图的配置，包括横纵轴单位长度
+                    new Chart(newCtx, {
+                        type: chartConfig.type,
+                        data: JSON.parse(JSON.stringify(chartConfig.data)),
+                        options: JSON.parse(JSON.stringify(chartConfig.options))
+                    });
+                    
+                    // 确保新图表与原图具有相同的配置
+                    const newChart = Chart.getChart(newCanvas);
+                    if (newChart && currentChart.options.scales) {
+                        // 确保保持与原图相同的barPercentage和categoryPercentage设置
+                        newChart.options.barPercentage = currentChart.options.barPercentage;
+                        newChart.options.categoryPercentage = currentChart.options.categoryPercentage;
+                        newChart.update();
+                    }
+                    
+                    // 确保新图表与原图具有相同的尺寸
+                    newCanvas.style.width = currentCanvas.style.width;
+                    newCanvas.style.height = currentCanvas.style.height;
+                }
+                
+                chartCounter++;
+            });
+        }
+        
+        // 用水量数据
+        const waterUsageData = [
+            9.0, 13.6, 14.9, 5.9, 4.0, 7.1, 6.4, 5.4, 19.4, 2.0,
+            2.2, 8.6, 13.8, 5.4, 10.2, 4.9, 6.8, 14.0, 2.0, 10.5,
+            2.1, 5.7, 5.1, 16.8, 6.0, 11.1, 1.3, 11.2, 7.7, 4.9,
+            2.3, 10.0, 16.7, 12.0, 12.4, 7.8, 5.2, 13.6, 2.6, 22.4,
+            3.6, 7.1, 8.8, 25.6, 3.2, 18.3, 5.1, 2.0, 3.0, 12.0,
+            22.2, 10.8, 5.5, 2.0, 24.3, 9.9, 3.6, 5.6, 4.4, 7.9,
+            5.1, 24.5, 6.4, 7.5, 4.7, 20.5, 5.5, 15.7, 2.6, 5.7,
+            5.5, 6.0, 16.0, 2.4, 9.5, 3.7, 17.0, 3.8, 4.1, 2.3,
+            5.3, 7.8, 8.1, 4.3, 13.3, 6.8, 1.3, 7.0, 4.9, 1.8,
+            7.1, 28.0, 10.2, 13.8, 17.9, 10.1, 5.5, 4.6, 3.2, 21.6
+        ];
+
+        // 初始化数据网格
+        const dataGrid = document.getElementById('data-grid');
+        waterUsageData.forEach((value, index) => {
+            const dataItem = document.createElement('div');
+            dataItem.className = 'data-item';
+            dataItem.textContent = value;
+            dataItem.dataset.value = value;
+            dataGrid.appendChild(dataItem);
+        });
+
+        // 高亮最大值和最小值功能
+        const highlightMaxBtn = document.getElementById('highlight-max');
+        const highlightMinBtn = document.getElementById('highlight-min');
+        
+        // 不再需要重置所有数据项的样式函数，因为我们现在允许最大值和最小值同时高亮
+        
+        // 高亮最大值变量
+        let maxHighlighted = false;
+        
+        // 高亮最大值
+        highlightMaxBtn.addEventListener('click', () => {
+            const max = Math.max(...waterUsageData);
+            maxHighlighted = !maxHighlighted;
+            
+            document.querySelectorAll('.data-item').forEach(item => {
+                const value = parseFloat(item.dataset.value);
+                if (value === max) {
+                    if (maxHighlighted) {
+                        item.style.backgroundColor = '#ff9800';
+                        item.style.color = 'white';
+                        item.style.fontWeight = 'bold';
+                        item.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.7)';
+                    } else {
+                        item.style.backgroundColor = '#e8f4f8';
+                        item.style.color = '#333';
+                        item.style.fontWeight = 'normal';
+                        item.style.boxShadow = 'none';
+                    }
+                }
+            });
+        });
+        
+        // 高亮最小值变量
+        let minHighlighted = false;
+        
+        // 高亮最小值
+        highlightMinBtn.addEventListener('click', () => {
+            const min = Math.min(...waterUsageData);
+            minHighlighted = !minHighlighted;
+            
+            document.querySelectorAll('.data-item').forEach(item => {
+                const value = parseFloat(item.dataset.value);
+                if (value === min) {
+                    if (minHighlighted) {
+                        item.style.backgroundColor = '#3498db';
+                        item.style.color = 'white';
+                        item.style.fontWeight = 'bold';
+                        item.style.boxShadow = '0 0 5px rgba(52, 152, 219, 0.7)';
+                    } else {
+                        item.style.backgroundColor = '#e8f4f8';
+                        item.style.color = '#333';
+                        item.style.fontWeight = 'normal';
+                        item.style.boxShadow = 'none';
+                    }
+                }
+            });
+        });
+
+        // 计算统计量
+        const calculateStatsBtn = document.getElementById('calculate-stats');
+        calculateStatsBtn.addEventListener('click', () => {
+            const sortedData = [...waterUsageData].sort((a, b) => a - b);
+            const min = sortedData[0];
+            const max = sortedData[sortedData.length - 1];
+            const range = max - min;
+            
+            // 获取统计量容器
+            const statsContainer = document.getElementById('stats-container');
+            
+            // 创建或显示统计量文本框
+            let statsBox = document.getElementById('stats-text-box');
+            if (!statsBox) {
+                statsBox = document.createElement('div');
+                statsBox.id = 'stats-text-box';
+                statsBox.className = 'result-box';
+                statsBox.style.width = '100%';
+                statsBox.style.marginTop = '10px';
+                statsBox.style.maxWidth = '150px'; // 限制最大宽度
+                statsBox.style.fontSize = '0.9em'; // 稍微减小字体大小
+                statsBox.style.overflow = 'hidden'; // 防止内容溢出
+                statsBox.style.backgroundColor = 'transparent'; // 移除背景色
+                statsBox.style.boxShadow = 'none'; // 移除阴影
+                // 将统计结果放在指定的容器内
+                statsContainer.appendChild(statsBox);
+            }
+            
+            // 更新统计量文本框内容
+            statsBox.innerHTML = `
+                <div class="result-item">最大值：${max.toFixed(1)}</div>
+                <div class="result-item">最小值：${min.toFixed(1)}</div>
+                <div class="result-item">极差：${range.toFixed(1)}</div>
+            `;
+            
+            // 显示统计量文本框
+            statsBox.style.display = 'block';
+        });
+        
+        // 页面加载时隐藏可能存在的统计量文本框
+        window.addEventListener('load', () => {
+            const existingStatsBox = document.getElementById('stats-text-box');
+            if (existingStatsBox) {
+                existingStatsBox.style.display = 'none';
+            }
+        });
+
+        // 分组方法切换
+        const groupMethodRadios = document.getElementsByName('group-method');
+        const intervalControls = document.getElementById('interval-controls');
+        const countControls = document.getElementById('count-controls');
+        
+        groupMethodRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'interval') {
+                    intervalControls.style.display = 'flex';
+                    countControls.style.display = 'none';
+                } else {
+                    intervalControls.style.display = 'none';
+                    countControls.style.display = 'flex';
+                }
+            });
+        });
+
+        // 组距滑块
+        const intervalSlider = document.getElementById('interval-slider');
+        const intervalValue = document.getElementById('interval-value');
+        
+        intervalSlider.addEventListener('input', () => {
+            intervalValue.textContent = intervalSlider.value;
+            // 滑动时自动更新频率分布表
+            const interval = parseFloat(intervalSlider.value);
+            createFrequencyDistribution('interval', interval);
+        });
+
+        // 组数滑块
+        const groupCountSlider = document.getElementById('group-count-slider');
+        const groupCountValue = document.getElementById('group-count-value');
+        
+        groupCountSlider.addEventListener('input', () => {
+            groupCountValue.textContent = groupCountSlider.value;
+            // 滑动时自动更新频率分布表
+            const groupCount = parseInt(groupCountSlider.value);
+            createFrequencyDistribution('count', groupCount);
+        });
+
+        // 数据分组复选框事件监听
+        const showGroupingCheckbox = document.getElementById('show-grouping-checkbox');
+        const showGroupingCheckboxCount = document.getElementById('show-grouping-checkbox-count');
+        
+        // 同步两个复选框的状态
+        showGroupingCheckbox.addEventListener('change', () => {
+            showGroupingCheckboxCount.checked = showGroupingCheckbox.checked;
+            const method = 'interval';
+            const value = parseFloat(intervalSlider.value);
+            createFrequencyDistribution(method, value);
+        });
+        
+        showGroupingCheckboxCount.addEventListener('change', () => {
+            showGroupingCheckbox.checked = showGroupingCheckboxCount.checked;
+            const method = 'count';
+            const value = parseInt(groupCountSlider.value);
+            createFrequencyDistribution(method, value);
+        });
+        
+        // 修改滑块事件监听器，添加数据分组功能
+        intervalSlider.addEventListener('input', () => {
+            intervalValue.textContent = intervalSlider.value;
+            // 滑动时自动更新频率分布表和数据分组
+            const interval = parseFloat(intervalSlider.value);
+            createFrequencyDistribution('interval', interval);
+        });
+        
+        groupCountSlider.addEventListener('input', () => {
+            groupCountValue.textContent = groupCountSlider.value;
+            // 滑动时自动更新频率分布表和数据分组
+            const groupCount = parseInt(groupCountSlider.value);
+            createFrequencyDistribution('count', groupCount);
+        });
+
+        // 创建频率分布表和直方图
+        let histogramChart = null;
+        let frequencyCountChart = null;
+        let showFrequencyCount = false;
+        
+        // 添加频数分布直方图按钮事件监听
+        document.getElementById('toggle-frequency-count').addEventListener('click', function() {
+            showFrequencyCount = !showFrequencyCount;
+            const button = document.getElementById('toggle-frequency-count');
+            
+            if (showFrequencyCount) {
+                button.textContent = '隐藏频数分布直方图';
+                document.getElementById('frequency-count-chart-container').style.display = 'block';
+            } else {
+                button.textContent = '显示频数分布直方图';
+                document.getElementById('frequency-count-chart-container').style.display = 'none';
+            }
+            
+            // 更新当前显示的频率分布
+            const method = document.querySelector('input[name="group-method"]:checked').value;
+            const value = method === 'interval' ? 
+                parseFloat(intervalSlider.value) : 
+                parseInt(groupCountSlider.value);
+            createFrequencyDistribution(method, value);
+        });
+        
+        function createFrequencyDistribution(method, value) {
+            const sortedData = [...waterUsageData].sort((a, b) => a - b);
+            const min = 1.2; // 设置第一个区间左端点为1.2
+            const max = sortedData[sortedData.length - 1];
+            
+            let intervals = [];
+            if (method === 'interval') {
+                const interval = value;
+                const groupCount = Math.ceil((max - min) / interval);
+                
+                for (let i = 0; i < groupCount; i++) {
+                    const lowerBound = min + i * interval;
+                    const upperBound = min + (i + 1) * interval;
+                    intervals.push({
+                        lowerBound: lowerBound,
+                        upperBound: upperBound,
+                        count: 0,
+                        frequency: 0,
+                        color: getGroupColor(i) // 为每个组分配颜色
+                    });
+                }
+            } else {
+                const groupCount = value;
+                const interval = (max - min) / groupCount;
+                
+                for (let i = 0; i < groupCount; i++) {
+                    const lowerBound = min + i * interval;
+                    const upperBound = min + (i + 1) * interval;
+                    intervals.push({
+                        lowerBound: lowerBound,
+                        upperBound: upperBound,
+                        count: 0,
+                        frequency: 0,
+                        color: getGroupColor(i) // 为每个组分配颜色
+                    });
+                }
+            }
+            
+            // 计算每个区间的频数和频率
+            waterUsageData.forEach(value => {
+                for (let i = 0; i < intervals.length; i++) {
+                    if (value >= intervals[i].lowerBound && 
+                        (value < intervals[i].upperBound || 
+                         (i === intervals.length - 1 && value === intervals[i].upperBound))) {
+                        intervals[i].count++;
+                        break;
+                    }
+                }
+            });
+            
+            // 如果勾选了数据分组复选框，则重新排列数据项并更新样式
+            const showGrouping = document.getElementById('show-grouping-checkbox').checked || 
+                               document.getElementById('show-grouping-checkbox-count').checked;
+            
+            if (showGrouping) {
+                // 清空数据网格
+                dataGrid.innerHTML = '';
+                
+                // 创建一个二维数组，用于存储按组分类的数据
+                const groupedData = Array.from({ length: intervals.length }, () => []);
+                
+                // 将数据项分配到对应的组
+                waterUsageData.forEach(value => {
+                    for (let i = 0; i < intervals.length; i++) {
+                        if (value >= intervals[i].lowerBound && 
+                            (value < intervals[i].upperBound || 
+                             (i === intervals.length - 1 && value === intervals[i].upperBound))) {
+                            groupedData[i].push(value);
+                            break;
+                        }
+                    }
+                });
+                
+                // 计算每组的数据项数量，用于优化布局
+                const groupItemCounts = groupedData.map(group => group.length);
+                const maxItemsInGroup = Math.max(...groupItemCounts);
+                
+                // 保持原有数据项大小，不进行动态调整
+                // 数据网格保持原有样式
+                dataGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(65px, 1fr))';
+                dataGrid.style.gap = '8px';
+                
+                // 创建一个包含所有数据及其所属组的数组
+                let allDataWithGroup = [];
+                
+                // 将所有数据及其所属组信息收集到一个数组中
+                for (let i = 0; i < intervals.length; i++) {
+                    if (groupedData[i].length > 0) {
+                        groupedData[i].forEach(value => {
+                            allDataWithGroup.push({
+                                value: value,
+                                groupIndex: i,
+                                color: intervals[i].color
+                            });
+                        });
+                    }
+                }
+                
+                // 按数值从小到大排序
+                allDataWithGroup.sort((a, b) => a.value - b.value);
+                
+                // 将排序后的数据添加到网格
+                allDataWithGroup.forEach(item => {
+                    const dataItem = document.createElement('div');
+                    dataItem.className = 'data-item';
+                    dataItem.textContent = item.value;
+                    dataItem.dataset.value = item.value;
+                    dataItem.style.backgroundColor = item.color + '80'; // 添加透明度
+                    dataItem.style.color = getContrastColor(item.color);
+                    dataItem.style.fontWeight = 'bold';
+                    // 保持原有数据项大小，不设置fontSize和padding
+                    
+                    // 检查是否是高亮的最大值或最小值
+                    const max = Math.max(...waterUsageData);
+                    const min = Math.min(...waterUsageData);
+                    
+                    if (item.value === max && maxHighlighted) {
+                        // 保持最大值的高亮样式
+                        dataItem.style.backgroundColor = '#ff9800';
+                        dataItem.style.color = 'white';
+                        dataItem.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.7)';
+                    } else if (item.value === min && minHighlighted) {
+                        // 保持最小值的高亮样式
+                        dataItem.style.backgroundColor = '#3498db';
+                        dataItem.style.color = 'white';
+                        dataItem.style.boxShadow = '0 0 5px rgba(52, 152, 219, 0.7)';
+                    }
+                    
+                    dataGrid.appendChild(dataItem);
+                });
+                
+                // 恢复数据网格的原始样式
+                window.addEventListener('resize', function() {
+                    // 在窗口大小变化时重新计算布局
+                    createFrequencyDistribution(method, value);
+                });
+            } else {
+                // 恢复原始数据排列
+                dataGrid.innerHTML = '';
+                
+                // 重置数据网格的样式为默认值
+                dataGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(65px, 1fr))';
+                dataGrid.style.gap = '8px';
+                
+                waterUsageData.forEach((value, index) => {
+                    const dataItem = document.createElement('div');
+                    dataItem.className = 'data-item';
+                    dataItem.textContent = value;
+                    dataItem.dataset.value = value;
+                    
+                    // 检查是否是高亮的最大值或最小值
+                    const max = Math.max(...waterUsageData);
+                    const min = Math.min(...waterUsageData);
+                    
+                    if (value === max && maxHighlighted) {
+                        // 保持最大值的高亮样式
+                        dataItem.style.backgroundColor = '#ff9800';
+                        dataItem.style.color = 'white';
+                        dataItem.style.fontWeight = 'bold';
+                        dataItem.style.boxShadow = '0 0 5px rgba(255, 152, 0, 0.7)';
+                    } else if (value === min && minHighlighted) {
+                        // 保持最小值的高亮样式
+                        dataItem.style.backgroundColor = '#3498db';
+                        dataItem.style.color = 'white';
+                        dataItem.style.fontWeight = 'bold';
+                        dataItem.style.boxShadow = '0 0 5px rgba(52, 152, 219, 0.7)';
+                    } else {
+                        // 恢复默认样式
+                        dataItem.style.backgroundColor = '#e8f4f8';
+                        dataItem.style.color = '#333';
+                        dataItem.style.fontWeight = 'normal';
+                        dataItem.style.boxShadow = 'none';
+                    }
+                    
+                    // 重置为默认样式
+                    dataItem.style.fontSize = '1.1em';
+                    dataItem.style.padding = '8px 6px';
+                    
+                    dataGrid.appendChild(dataItem);
+                });
+            }
+            
+            intervals.forEach(interval => {
+                interval.frequency = interval.count / waterUsageData.length;
+            });
+            
+            // 计算累计频率
+            let cumulativeFrequency = 0;
+            intervals.forEach(interval => {
+                cumulativeFrequency += interval.frequency;
+                interval.cumulativeFrequency = cumulativeFrequency;
+            });
+            
+            // 更新频率分布表
+            const tableBody = document.querySelector('#frequency-table tbody');
+            tableBody.innerHTML = '';
+            
+            intervals.forEach((interval, index) => {
+                const row = document.createElement('tr');
+                
+                const groupCell = document.createElement('td');
+                groupCell.textContent = index + 1;
+                row.appendChild(groupCell);
+                
+                const intervalCell = document.createElement('td');
+                intervalCell.textContent = `[${interval.lowerBound.toFixed(1)}, ${interval.upperBound.toFixed(1)})`;
+                row.appendChild(intervalCell);
+                
+                const countCell = document.createElement('td');
+                countCell.textContent = interval.count;
+                row.appendChild(countCell);
+                
+                const frequencyCell = document.createElement('td');
+                frequencyCell.textContent = (interval.frequency * 100).toFixed(2) + '%';
+                row.appendChild(frequencyCell);
+                
+                const cumulativeFrequencyCell = document.createElement('td');
+                cumulativeFrequencyCell.textContent = (interval.cumulativeFrequency * 100).toFixed(2) + '%';
+                row.appendChild(cumulativeFrequencyCell);
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 创建直方图
+            const ctx = document.getElementById('histogram').getContext('2d');
+            
+            if (histogramChart) {
+                histogramChart.destroy();
+            }
+            
+            // 创建频数分布直方图（如果需要显示）
+            if (showFrequencyCount) {
+                const ctxFrequencyCount = document.getElementById('frequency-count-histogram').getContext('2d');
+                
+                if (frequencyCountChart) {
+                    frequencyCountChart.destroy();
+                }
+                
+                frequencyCountChart = new Chart(ctxFrequencyCount, {
+                    type: 'bar',
+                    data: {
+                        labels: intervals.map(interval => `[${interval.lowerBound.toFixed(1)}, ${interval.upperBound.toFixed(1)})`),
+                        datasets: [{
+                            label: '频数',
+                            data: intervals.map(interval => interval.count),
+                            backgroundColor: 'rgba(255, 152, 0, 0.7)',
+                            borderColor: 'rgba(255, 152, 0, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '频数'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '用水量 (t)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '居民月均用水量频数分布直方图',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const index = context.dataIndex;
+                                        return [
+                                            `频数: ${intervals[index].count}`,
+                                            `频率: ${(intervals[index].frequency * 100).toFixed(2)}%`,
+                                            `累计频率: ${(intervals[index].cumulativeFrequency * 100).toFixed(2)}%`
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            histogramChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: intervals.map(interval => `[${interval.lowerBound.toFixed(1)}, ${interval.upperBound.toFixed(1)})`),
+                    datasets: [{
+                        label: '频率/组距',
+                        data: intervals.map(interval => interval.frequency / (interval.upperBound - interval.lowerBound)),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    barPercentage: 1.0,
+                    categoryPercentage: 1.0,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '频率/组距'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '用水量 (t)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '居民月均用水量频率分布直方图',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return [
+                                        `频数: ${intervals[index].count}`,
+                                        `频数/组距: ${(intervals[index].count / (intervals[index].upperBound - intervals[index].lowerBound)).toFixed(2)}`,
+                                        `频率: ${(intervals[index].frequency * 100).toFixed(2)}%`,
+                                        `累计频率: ${(intervals[index].cumulativeFrequency * 100).toFixed(2)}%`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 为每个组生成不同的颜色
+        function getGroupColor(index) {
+            // 高达系列配色方案
+            const colors = [
+                '#FF0000', // 红色 - 夏亚专用扎古
+                '#FFD700', // 金色 - 独角兽高达
+                '#0000FF', // 蓝色 - RX-78-2高达
+                '#FFFFFF', // 白色 - 独角兽高达
+                '#00FF00', // 绿色 - 扎古II
+                '#FF00FF', // 粉色 - 夏亚专用高达
+                '#FFA500', // 橙色 - 扎古I
+                '#800080', // 紫色 - 高达MK-II
+                '#000000', // 黑色 - 暗影高达
+                '#00FFFF', // 青色 - 蓝色命运高达
+                '#964B00', // 棕色 - 古夫
+                '#808080', // 灰色 - Ez-8高达
+                '#FFFF00', // 黄色 - 百式
+                '#008000', // 深绿色 - 吉姆
+                '#4B0082'  // 靛蓝色 - 蓝色命运高达
+            ];
+            
+            // 如果组数超过预定义颜色数量，则循环使用
+            return colors[index % colors.length];
+        }
+        
+        // 根据背景色计算对比色（黑色或白色）
+        function getContrastColor(hexColor) {
+            // 将十六进制颜色转换为RGB
+            const r = parseInt(hexColor.substr(1, 2), 16);
+            const g = parseInt(hexColor.substr(3, 2), 16);
+            const b = parseInt(hexColor.substr(5, 2), 16);
+            
+            // 计算亮度（使用相对亮度公式）
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+            // 如果亮度大于128，返回黑色，否则返回白色
+            return brightness > 128 ? '#000000' : '#ffffff';
+        }
+        
+        // 初始化页面时自动计算统计量和频率分布
+        document.addEventListener('DOMContentLoaded', () => {
+            calculateStatsBtn.click();
+            // 初始化频率分布表
+            const interval = parseFloat(intervalSlider.value);
+            createFrequencyDistribution('interval', interval);
+        });
+    </script>
+</body>
+</html>
